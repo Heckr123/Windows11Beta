@@ -1,0 +1,2691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows 11</title>
+<link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;}
+:root{
+  --accent:#0078d4;--accent-light:#60b4ff;--accent-dark:#106ebe;
+  --glass:rgba(32,32,32,0.85);--glass-light:rgba(255,255,255,0.08);
+  --glass-border:rgba(255,255,255,0.12);--text:#fff;--text-dim:rgba(255,255,255,0.6);
+  --radius:8px;--taskbar-h:48px;--font:'Segoe UI',system-ui,sans-serif;
+}
+body{font-family:var(--font);overflow:hidden;width:100vw;height:100vh;background:#000;color:var(--text);cursor:default;}
+input,textarea{-webkit-user-select:text;user-select:text;cursor:text;}
+button{font-family:var(--font);}
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.25);}
+
+/* BOOT */
+#boot{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 1s ease;}
+#boot.hide{opacity:0;pointer-events:none;}
+.win-logo{display:flex;gap:3px;margin-bottom:48px;}
+.win-logo div{width:44px;height:44px;border-radius:2px;opacity:0;animation:logoFade 0.5s ease forwards;}
+.win-logo div:nth-child(1){background:#f25022;animation-delay:0.2s;}
+.win-logo div:nth-child(2){background:#7fba00;animation-delay:0.35s;}
+.win-logo div:nth-child(3){background:#00a4ef;animation-delay:0.5s;}
+.win-logo div:nth-child(4){background:#ffb900;animation-delay:0.65s;}
+@keyframes logoFade{from{opacity:0;transform:scale(0.7)}to{opacity:1;transform:scale(1)}}
+.boot-spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOCK */
+#lockscreen{position:fixed;inset:0;z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.7s cubic-bezier(.4,0,.2,1),opacity 0.7s;}
+#lockscreen.hide{transform:translateY(-100vh);opacity:0;pointer-events:none;}
+#ls-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0a0a1a 0%,#0d1b3e 40%,#0a2850 100%);}
+#ls-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(0,120,212,0.2),transparent 60%),radial-gradient(ellipse at 80% 30%,rgba(80,200,255,0.1),transparent 50%);}
+.ls-stars{position:absolute;inset:0;overflow:hidden;}
+.ls-time{position:relative;text-align:center;margin-bottom:12px;}
+.ls-time .t{font-size:88px;font-weight:200;letter-spacing:-3px;line-height:1;text-shadow:0 0 60px rgba(0,120,212,0.4);}
+.ls-time .d{font-size:22px;font-weight:300;opacity:0.75;margin-top:6px;}
+.ls-hint{position:relative;margin-top:56px;opacity:0.4;font-size:13px;display:flex;align-items:center;gap:8px;animation:hintBob 2s ease-in-out infinite;}
+@keyframes hintBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+/* LOGIN */
+#loginscreen{position:fixed;inset:0;z-index:8500;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(30px);transition:opacity 0.4s;}
+#loginscreen.visible{display:flex;}
+#loginscreen.hide{opacity:0;pointer-events:none;}
+.login-box{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.login-avatar{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#50e6ff);display:flex;align-items:center;justify-content:center;font-size:44px;box-shadow:0 0 0 3px rgba(255,255,255,0.25),0 8px 32px rgba(0,0,0,0.4);}
+.login-name{font-size:22px;font-weight:300;letter-spacing:0.02em;}
+.login-input-wrap{position:relative;margin-top:6px;}
+.login-input{background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.18);border-radius:4px;padding:9px 44px 9px 16px;color:#fff;font-size:14px;font-family:var(--font);width:260px;outline:none;transition:border-color 0.2s,background 0.2s;}
+.login-input:focus{border-color:var(--accent);background:rgba(255,255,255,0.12);}
+.login-input::placeholder{color:rgba(255,255,255,0.35);}
+.login-arrow{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:3px;width:30px;height:30px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.login-arrow:hover{background:var(--accent-dark);}
+.login-hint{font-size:12px;color:rgba(255,255,255,0.35);}
+
+/* DESKTOP */
+#desktop{position:fixed;inset:0;bottom:var(--taskbar-h);overflow:hidden;}
+#wallpaper{position:absolute;inset:0;background:linear-gradient(135deg,#0d1b2a 0%,#1b2838 30%,#1a3a5c 60%,#0d2137 100%);}
+#wallpaper::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 35%,rgba(0,120,212,0.35) 0%,transparent 55%),radial-gradient(ellipse at 75% 65%,rgba(80,230,255,0.12) 0%,transparent 45%),radial-gradient(ellipse at 50% 80%,rgba(0,60,120,0.3) 0%,transparent 60%);}
+#desktop-icons{position:absolute;top:16px;left:16px;display:flex;flex-direction:column;flex-wrap:wrap;gap:4px;max-height:calc(100vh - var(--taskbar-h) - 32px);}
+.desk-icon{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 6px;border-radius:6px;cursor:pointer;width:78px;transition:background 0.15s;}
+.desk-icon:hover{background:rgba(255,255,255,0.1);}
+.desk-icon.selected{background:rgba(0,120,212,0.35);}
+.desk-icon .di{font-size:34px;line-height:1;}
+.desk-icon .dl{font-size:11px;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.9);line-height:1.3;}
+
+/* CTX MENU */
+#ctx-menu{position:fixed;background:rgba(28,28,28,0.96);border:1px solid var(--glass-border);border-radius:10px;backdrop-filter:blur(30px);min-width:220px;padding:5px;z-index:7500;display:none;box-shadow:0 8px 40px rgba(0,0,0,0.6);}
+#ctx-menu.show{display:block;}
+.ctx-item{padding:8px 14px;border-radius:5px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.1s;color:rgba(255,255,255,0.85);}
+.ctx-item:hover{background:rgba(255,255,255,0.09);}
+.ctx-sep{height:1px;background:rgba(255,255,255,0.08);margin:4px 6px;}
+
+/* TASKBAR */
+#taskbar{position:fixed;bottom:0;left:0;right:0;height:var(--taskbar-h);background:rgba(18,18,18,0.88);backdrop-filter:blur(40px) saturate(180%);border-top:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;z-index:5000;}
+#tb-left{position:absolute;left:8px;display:flex;align-items:center;gap:2px;}
+#tb-center{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:3px;}
+#tb-right{position:absolute;right:10px;display:flex;align-items:center;gap:6px;}
+#tb-running{display:flex;align-items:center;gap:3px;}
+.tb-btn{width:40px;height:40px;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.15s;position:relative;font-size:20px;flex-shrink:0;}
+.tb-btn:hover{background:rgba(255,255,255,0.09);}
+.tb-btn.active{background:rgba(255,255,255,0.12);}
+.tb-btn.running::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent-light);}
+.tb-btn.active.running::after{width:16px;}
+.tb-time{text-align:right;font-size:12px;line-height:1.5;cursor:pointer;padding:4px 6px;border-radius:5px;transition:background 0.15s;}
+.tb-time:hover{background:rgba(255,255,255,0.08);}
+.sys-tray{display:flex;align-items:center;gap:5px;padding:5px 8px;border-radius:6px;font-size:13px;cursor:pointer;transition:background 0.15s;}
+.sys-tray:hover{background:rgba(255,255,255,0.08);}
+
+/* START MENU */
+#start-menu{position:fixed;bottom:calc(var(--taskbar-h)+8px);left:50%;transform:translateX(-50%) translateY(16px);width:650px;max-height:740px;background:rgba(30,30,30,0.97);border:1px solid var(--glass-border);border-radius:14px;backdrop-filter:blur(60px) saturate(200%);z-index:6000;display:none;flex-direction:column;padding:26px 26px 16px;gap:18px;box-shadow:0 20px 80px rgba(0,0,0,0.7);opacity:0;transition:opacity 0.18s,transform 0.18s;}
+#start-menu.show{display:flex;opacity:1;transform:translateX(-50%) translateY(0);}
+.sm-search{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:7px;padding:9px 14px;transition:border-color 0.2s;}
+.sm-search:focus-within{border-color:var(--accent);}
+.sm-search input{background:none;border:none;color:#fff;font-size:14px;font-family:var(--font);flex:1;outline:none;}
+.sm-search input::placeholder{color:rgba(255,255,255,0.35);}
+.sm-sec-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.sm-sec-title{font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);}
+.sm-sec-more{font-size:12px;color:var(--accent-light);cursor:pointer;}
+.sm-pinned{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;}
+.sm-pin{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px;border-radius:7px;cursor:pointer;transition:background 0.15s;}
+.sm-pin:hover{background:rgba(255,255,255,0.08);}
+.sm-pin .icon{font-size:26px;}
+.sm-pin .label{font-size:11px;text-align:center;color:rgba(255,255,255,0.82);}
+.sm-recommended{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.sm-rec{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;transition:background 0.15s;}
+.sm-rec:hover{background:rgba(255,255,255,0.08);}
+.sm-user-bar{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;border-top:1px solid rgba(255,255,255,0.07);margin-top:4px;padding-top:14px;}
+.sm-user-bar:hover{background:rgba(255,255,255,0.05);}
+.sm-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#50e6ff);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.sm-power{margin-left:auto;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.15s;font-size:16px;}
+.sm-power:hover{background:rgba(255,100,100,0.15);}
+#sm-search-results{display:none;flex-direction:column;gap:2px;}
+#sm-search-results.show{display:flex;}
+.sm-search-result{padding:8px 12px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:13px;transition:background 0.1s;}
+.sm-search-result:hover{background:rgba(255,255,255,0.08);}
+
+/* WINDOWS */
+.window{position:fixed;background:rgba(26,26,26,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 80px rgba(0,0,0,0.6);z-index:4000;min-width:280px;min-height:180px;}
+.window.focused{z-index:4100;border-color:rgba(255,255,255,0.16);}
+.window.maximized{border-radius:0!important;border:none!important;box-shadow:none!important;}
+.window.minimized{display:none!important;}
+.win-titlebar{height:32px;display:flex;align-items:center;padding:0 10px;gap:8px;cursor:move;flex-shrink:0;background:rgba(255,255,255,0.025);}
+.win-title-icon{font-size:13px;}
+.win-title-text{font-size:13px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:rgba(255,255,255,0.82);}
+.win-controls{display:flex;margin-left:auto;}
+.win-ctrl{width:46px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:12px;transition:background 0.1s;color:rgba(255,255,255,0.65);}
+.win-ctrl:hover{background:rgba(255,255,255,0.09);color:#fff;}
+.win-ctrl.close:hover{background:#c42b1c;color:#fff;}
+.win-content{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.win-resize{position:absolute;right:0;bottom:0;width:14px;height:14px;cursor:se-resize;z-index:10;}
+
+/* TOOLBAR SHARED */
+.toolbar{height:36px;display:flex;align-items:center;gap:3px;padding:0 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);flex-shrink:0;}
+.tb-icon-btn{width:28px;height:28px;border-radius:4px;border:none;background:none;color:rgba(255,255,255,0.65);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:background 0.1s;}
+.tb-icon-btn:hover{background:rgba(255,255,255,0.09);color:#fff;}
+.tb-text-btn{padding:4px 12px;border-radius:4px;border:none;background:none;color:rgba(255,255,255,0.65);cursor:pointer;font-size:13px;font-family:var(--font);transition:background 0.1s;display:flex;align-items:center;gap:5px;}
+.tb-text-btn:hover{background:rgba(255,255,255,0.09);color:#fff;}
+.tb-text-btn.primary{background:var(--accent);color:#fff;}
+.tb-text-btn.primary:hover{background:var(--accent-dark);}
+.tb-sep{width:1px;height:18px;background:rgba(255,255,255,0.1);margin:0 3px;}
+.statusbar{height:22px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;padding:0 12px;font-size:11px;color:rgba(255,255,255,0.4);gap:16px;flex-shrink:0;}
+
+/* FILE EXPLORER */
+.fe-path-bar{height:34px;display:flex;align-items:center;gap:4px;padding:0 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.015);}
+.fe-path-input{flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:4px 10px;color:#fff;font-size:12px;font-family:var(--font);outline:none;transition:border-color 0.2s;}
+.fe-path-input:focus{border-color:var(--accent);}
+.fe-body{display:flex;flex:1;overflow:hidden;}
+.fe-sidebar{width:186px;border-right:1px solid rgba(255,255,255,0.06);padding:6px;overflow-y:auto;flex-shrink:0;}
+.fe-sidebar-group{margin-bottom:8px;}
+.fe-sidebar-header{font-size:10px;color:rgba(255,255,255,0.3);padding:4px 8px;text-transform:uppercase;letter-spacing:0.08em;}
+.fe-sidebar-item{padding:5px 8px;border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:7px;color:rgba(255,255,255,0.7);font-size:12px;transition:background 0.1s;}
+.fe-sidebar-item:hover{background:rgba(255,255,255,0.07);}
+.fe-sidebar-item.active{background:rgba(0,120,212,0.28);color:#fff;}
+.fe-main{flex:1;overflow-y:auto;padding:10px;}
+.fe-main.grid-view{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:3px;align-content:start;}
+.fe-main.list-view{display:flex;flex-direction:column;gap:1px;}
+.fe-item-grid{display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border-radius:5px;cursor:pointer;transition:background 0.1s;}
+.fe-item-grid:hover{background:rgba(255,255,255,0.07);}
+.fe-item-grid.selected{background:rgba(0,120,212,0.3);}
+.fe-item-grid .fi{font-size:30px;}
+.fe-item-grid .fn{font-size:11px;text-align:center;word-break:break-all;line-height:1.3;color:rgba(255,255,255,0.82);}
+.fe-item-list{display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:4px;cursor:pointer;transition:background 0.1s;font-size:13px;}
+.fe-item-list:hover{background:rgba(255,255,255,0.06);}
+.fe-item-list.selected{background:rgba(0,120,212,0.28);}
+.fe-item-list .fi{font-size:18px;width:22px;}
+
+/* NOTEPAD */
+.np-menubar{height:28px;display:flex;align-items:center;border-bottom:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.np-menu-item{padding:0 12px;height:100%;display:flex;align-items:center;font-size:13px;cursor:pointer;position:relative;transition:background 0.1s;}
+.np-menu-item:hover{background:rgba(255,255,255,0.08);}
+.np-dropdown{position:absolute;top:100%;left:0;background:rgba(28,28,28,0.97);border:1px solid var(--glass-border);border-radius:8px;min-width:200px;padding:4px;z-index:100;display:none;box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+.np-dropdown.show{display:block;}
+.np-dd-item{padding:7px 14px;border-radius:4px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;transition:background 0.1s;}
+.np-dd-item:hover{background:rgba(255,255,255,0.08);}
+.np-dd-sep{height:1px;background:rgba(255,255,255,0.08);margin:3px 6px;}
+.np-editor{flex:1;background:#1c1c1c;border:none;color:rgba(255,255,255,0.9);font-size:14px;font-family:'Consolas','Courier New',monospace;padding:14px;resize:none;outline:none;line-height:1.7;tab-size:4;}
+.np-find-bar{display:none;padding:6px 10px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);gap:6px;align-items:center;flex-shrink:0;}
+.np-find-bar.show{display:flex;}
+.np-find-input{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:4px;padding:4px 8px;color:#fff;font-size:13px;font-family:var(--font);outline:none;width:180px;}
+.np-find-input:focus{border-color:var(--accent);}
+
+/* TERMINAL */
+.term-tabs{height:32px;display:flex;align-items:flex-end;padding:0 8px;gap:2px;background:#0c0c0c;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.term-tab{padding:5px 14px;border-radius:6px 6px 0 0;font-size:12px;cursor:pointer;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:6px;transition:background 0.1s;}
+.term-tab.active{background:rgba(255,255,255,0.12);color:#fff;}
+.term-tab-close{opacity:0.4;font-size:10px;}
+.term-tab:hover .term-tab-close{opacity:1;}
+.term-add-tab{padding:5px 10px;cursor:pointer;opacity:0.4;font-size:16px;transition:opacity 0.1s;}
+.term-add-tab:hover{opacity:1;}
+.term-body{flex:1;background:#0c0c0c;padding:10px 14px;font-family:'Consolas','Courier New',monospace;font-size:13px;overflow-y:auto;display:flex;flex-direction:column;gap:1px;}
+.term-line{line-height:1.55;white-space:pre-wrap;word-break:break-all;}
+.term-prompt-line{display:flex;align-items:center;}
+.term-ps1{color:#4ec9b0;white-space:nowrap;font-family:'Consolas',monospace;font-size:13px;}
+.term-ps2{color:#569cd6;font-size:13px;font-family:'Consolas',monospace;}
+.term-ps3{color:#fff;font-size:13px;font-family:'Consolas',monospace;margin:0 4px;}
+.term-input{flex:1;background:none;border:none;color:#d4d4d4;font-size:13px;font-family:'Consolas',monospace;outline:none;caret-color:#fff;}
+.term-output{color:#d4d4d4;}
+.term-error{color:#f44747;}
+.term-success{color:#4ec9b0;}
+.term-info{color:#9cdcfe;}
+.term-warn{color:#ce9178;}
+
+/* CALCULATOR */
+.calc-header{padding:14px 18px 6px;text-align:right;}
+.calc-mode{font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:6px;text-align:left;}
+.calc-expr{font-size:14px;color:rgba(255,255,255,0.4);min-height:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.calc-result{font-size:46px;font-weight:200;letter-spacing:-1px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;}
+.calc-btns{display:grid;gap:1px;flex:1;background:rgba(0,0,0,0.3);}
+.calc-btns.std{grid-template-columns:repeat(4,1fr);}
+.calc-btns.sci{grid-template-columns:repeat(5,1fr);}
+.calc-btn{display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:background 0.1s;background:rgba(40,40,40,0.9);color:rgba(255,255,255,0.9);}
+.calc-btn:hover{background:rgba(255,255,255,0.1);}
+.calc-btn:active{background:rgba(255,255,255,0.05);}
+.calc-btn.op{background:rgba(255,255,255,0.05);color:#60b4ff;}
+.calc-btn.eq{background:var(--accent);color:#fff;}
+.calc-btn.eq:hover{background:var(--accent-dark);}
+.calc-btn.fn{background:rgba(255,255,255,0.03);color:rgba(255,255,255,0.7);font-size:12px;}
+.calc-btn.fn:hover{background:rgba(255,255,255,0.08);}
+.calc-btn.wide{grid-column:span 2;}
+.calc-btn.mem{color:#ffd700;font-size:11px;}
+
+/* SETTINGS */
+.settings-layout{display:flex;flex:1;overflow:hidden;}
+.settings-sidebar{width:210px;border-right:1px solid rgba(255,255,255,0.06);padding:8px 6px;overflow-y:auto;flex-shrink:0;}
+.settings-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:6px 10px;margin:0 4px 10px;}
+.settings-search input{background:none;border:none;color:#fff;font-size:13px;font-family:var(--font);outline:none;flex:1;}
+.settings-nav{padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.72);transition:background 0.1s;margin-bottom:1px;}
+.settings-nav:hover{background:rgba(255,255,255,0.07);}
+.settings-nav.active{background:rgba(0,120,212,0.28);color:#fff;}
+.settings-content{flex:1;overflow-y:auto;padding:22px 30px;}
+.settings-content h2{font-size:22px;font-weight:600;margin-bottom:22px;}
+.settings-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;margin-bottom:10px;overflow:hidden;}
+.s-row{display:flex;align-items:center;padding:13px 16px;gap:13px;border-bottom:1px solid rgba(255,255,255,0.05);cursor:pointer;transition:background 0.1s;}
+.s-row:last-child{border-bottom:none;}
+.s-row:hover{background:rgba(255,255,255,0.03);}
+.s-row-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.s-row-text{flex:1;}
+.s-row-text .label{font-size:13px;}
+.s-row-text .sub{font-size:12px;color:rgba(255,255,255,0.42);margin-top:2px;}
+.toggle{width:42px;height:22px;background:rgba(255,255,255,0.14);border-radius:11px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;}
+.toggle.on{background:var(--accent);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.toggle.on::after{transform:translateX(20px);}
+.s-select{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:4px;color:#fff;font-family:var(--font);font-size:12px;padding:4px 8px;outline:none;cursor:pointer;}
+.s-select option{background:#1e1e1e;}
+
+/* BROWSER */
+.browser-tabs{height:36px;display:flex;align-items:flex-end;padding:0 6px;gap:2px;background:rgba(15,15,15,0.9);flex-shrink:0;}
+.browser-tab{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px 6px 0 0;background:rgba(255,255,255,0.07);font-size:12px;cursor:pointer;max-width:180px;min-width:100px;transition:background 0.1s;position:relative;}
+.browser-tab.active{background:rgba(26,26,26,0.97);}
+.browser-tab .tab-close{margin-left:auto;opacity:0.4;font-size:11px;padding:1px 3px;border-radius:3px;}
+.browser-tab .tab-close:hover{opacity:1;background:rgba(255,255,255,0.1);}
+.browser-tab .tab-favicon{font-size:13px;}
+.browser-tab .tab-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.add-tab-btn{padding:4px 10px;cursor:pointer;opacity:0.5;font-size:18px;align-self:center;}
+.add-tab-btn:hover{opacity:1;}
+.browser-bar{display:flex;align-items:center;gap:5px;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(20,20,20,0.8);flex-shrink:0;}
+.browser-nav-btn{width:28px;height:28px;border-radius:5px;border:none;background:none;color:rgba(255,255,255,0.55);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background 0.1s;}
+.browser-nav-btn:hover{background:rgba(255,255,255,0.08);color:#fff;}
+.browser-nav-btn:disabled{opacity:0.2;cursor:default;}
+.browser-url-wrap{flex:1;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:5px 14px;transition:border-color 0.2s;}
+.browser-url-wrap:focus-within{border-color:var(--accent);background:rgba(255,255,255,0.09);}
+.browser-url{flex:1;background:none;border:none;color:#fff;font-size:13px;font-family:var(--font);outline:none;}
+.browser-content{flex:1;overflow:hidden;position:relative;}
+.browser-content iframe{width:100%;height:100%;border:none;background:#fff;}
+.browser-loading{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent-light));animation:loadingBar 1.5s ease-in-out infinite;display:none;}
+@keyframes loadingBar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)} }
+.browser-homepage{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;overflow:auto;}
+.browser-search-box{display:flex;align-items:center;background:rgba(255,255,255,0.09);border:1px solid rgba(255,255,255,0.14);border-radius:26px;width:440px;overflow:hidden;transition:border-color 0.2s;}
+.browser-search-box:focus-within{border-color:var(--accent);}
+.browser-search-box input{flex:1;background:none;border:none;color:#fff;font-size:15px;padding:11px 18px;outline:none;font-family:var(--font);}
+.browser-search-box input::placeholder{color:rgba(255,255,255,0.35);}
+.browser-search-box button{padding:11px 18px;background:var(--accent);border:none;color:#fff;cursor:pointer;font-size:14px;transition:background 0.15s;}
+.browser-search-box button:hover{background:var(--accent-dark);}
+.browser-speed-dials{display:grid;grid-template-columns:repeat(5,68px);gap:14px;}
+.browser-dial{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;}
+.browser-dial .bd-icon{width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,0.09);display:flex;align-items:center;justify-content:center;font-size:24px;transition:background 0.15s,transform 0.15s;}
+.browser-dial:hover .bd-icon{background:rgba(255,255,255,0.16);transform:scale(1.05);}
+.browser-dial .bd-label{font-size:11px;color:rgba(255,255,255,0.55);}
+
+/* PAINT */
+.paint-tools{width:44px;border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;gap:2px;padding:6px 4px;background:rgba(255,255,255,0.02);overflow-y:auto;flex-shrink:0;}
+.paint-tool-btn{width:36px;height:36px;border-radius:5px;border:none;background:none;color:rgba(255,255,255,0.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;transition:background 0.1s;position:relative;}
+.paint-tool-btn:hover{background:rgba(255,255,255,0.09);}
+.paint-tool-btn.active{background:rgba(0,120,212,0.35);color:#fff;}
+.paint-canvas-wrap{flex:1;overflow:auto;background:#4a4a4a;display:flex;align-items:flex-start;justify-content:flex-start;padding:10px;}
+.paint-colors{height:38px;border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;padding:0 10px;gap:6px;flex-shrink:0;background:rgba(255,255,255,0.02);}
+.paint-color-swatch{width:22px;height:22px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color 0.1s,transform 0.1s;}
+.paint-color-swatch:hover{transform:scale(1.15);}
+.paint-color-swatch.active{border-color:#fff;}
+.paint-body{display:flex;flex:1;overflow:hidden;}
+
+/* PHOTOS / IMAGE VIEWER */
+.photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:3px;padding:8px;overflow-y:auto;flex:1;}
+.photo-thumb{aspect-ratio:1;border-radius:4px;overflow:hidden;cursor:pointer;position:relative;background:rgba(255,255,255,0.04);}
+.photo-thumb canvas{width:100%;height:100%;display:block;}
+.photo-thumb:hover::after{content:'';position:absolute;inset:0;background:rgba(0,120,212,0.3);border:2px solid var(--accent);border-radius:4px;}
+.photo-viewer{display:none;flex:1;flex-direction:column;background:#111;}
+.photo-viewer.show{display:flex;}
+.photo-viewer-content{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.photo-viewer-img{max-width:100%;max-height:100%;transition:transform 0.3s;}
+.pv-controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;border-top:1px solid rgba(255,255,255,0.06);}
+
+/* MUSIC */
+.music-layout{display:flex;flex:1;overflow:hidden;}
+.music-sidebar{width:190px;border-right:1px solid rgba(255,255,255,0.06);padding:8px;overflow-y:auto;flex-shrink:0;}
+.music-nav{padding:8px 10px;border-radius:5px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.7);transition:background 0.1s;}
+.music-nav:hover{background:rgba(255,255,255,0.07);}
+.music-nav.active{background:rgba(0,120,212,0.25);color:#fff;}
+.music-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.music-list{flex:1;overflow-y:auto;padding:6px;}
+.music-track{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background 0.1s;}
+.music-track:hover{background:rgba(255,255,255,0.07);}
+.music-track.playing{background:rgba(0,120,212,0.2);}
+.music-track .num{width:20px;font-size:12px;color:rgba(255,255,255,0.35);text-align:center;}
+.music-track .info{flex:1;min-width:0;}
+.music-track .info .t{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.music-track .info .a{font-size:11px;color:rgba(255,255,255,0.45);}
+.music-track .dur{font-size:12px;color:rgba(255,255,255,0.4);}
+.music-player{border-top:1px solid rgba(255,255,255,0.06);padding:12px 16px;background:rgba(255,255,255,0.02);}
+.music-now-playing{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.music-art{width:52px;height:52px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.music-controls{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:8px;}
+.music-ctrl-btn{background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:18px;transition:color 0.1s,transform 0.1s;}
+.music-ctrl-btn:hover{color:#fff;transform:scale(1.1);}
+.music-ctrl-btn.play-btn{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.music-ctrl-btn.play-btn:hover{background:var(--accent-dark);transform:scale(1.05);}
+.music-progress{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,0.4);}
+.music-prog-bar{flex:1;height:3px;background:rgba(255,255,255,0.12);border-radius:2px;cursor:pointer;position:relative;}
+.music-prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.5s linear;}
+.music-vol{display:flex;align-items:center;gap:6px;margin-top:8px;}
+.music-visualizer{height:40px;display:flex;align-items:flex-end;gap:2px;padding:0 2px;}
+.music-vis-bar{flex:1;background:var(--accent);border-radius:2px 2px 0 0;transition:height 0.1s ease;min-height:2px;}
+
+/* MAPS */
+.maps-layout{display:flex;flex:1;overflow:hidden;}
+.maps-sidebar{width:280px;border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;flex-shrink:0;}
+.maps-search-bar{padding:10px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.maps-search-input{width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:8px 14px;color:#fff;font-size:13px;font-family:var(--font);outline:none;transition:border-color 0.2s;}
+.maps-search-input:focus{border-color:var(--accent);}
+.maps-result{padding:10px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;align-items:flex-start;gap:10px;transition:background 0.1s;}
+.maps-result:hover{background:rgba(255,255,255,0.05);}
+.maps-canvas-wrap{flex:1;position:relative;overflow:hidden;}
+.maps-controls{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:4px;z-index:10;}
+.maps-ctrl-btn{width:32px;height:32px;background:rgba(28,28,28,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:#fff;transition:background 0.1s;}
+.maps-ctrl-btn:hover{background:rgba(60,60,60,0.95);}
+.maps-info-panel{position:absolute;bottom:12px;left:12px;background:rgba(22,22,22,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;backdrop-filter:blur(10px);max-width:220px;}
+.maps-layer-btns{position:absolute;top:12px;left:12px;display:flex;gap:4px;}
+.maps-layer-btn{padding:5px 12px;background:rgba(28,28,28,0.92);border:1px solid rgba(255,255,255,0.1);border-radius:20px;font-size:12px;cursor:pointer;color:rgba(255,255,255,0.8);transition:background 0.1s;}
+.maps-layer-btn:hover,.maps-layer-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* WIDGETS / ACTION CENTER */
+#widgets{position:fixed;top:0;left:0;bottom:var(--taskbar-h);width:390px;background:rgba(22,22,22,0.94);backdrop-filter:blur(40px);border-right:1px solid var(--glass-border);z-index:5500;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(.4,0,.2,1);padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+#widgets.show{transform:translateX(0);}
+.widget{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:16px;}
+.widget h3{font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:12px;}
+#action-center{position:fixed;bottom:calc(var(--taskbar-h)+8px);right:8px;width:370px;background:rgba(26,26,26,0.96);border:1px solid var(--glass-border);border-radius:14px;backdrop-filter:blur(40px);z-index:5800;padding:16px;display:none;flex-direction:column;gap:14px;box-shadow:0 10px 40px rgba(0,0,0,0.6);}
+#action-center.show{display:flex;}
+.ac-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.ac-tile{background:rgba(255,255,255,0.06);border-radius:9px;padding:10px 12px;cursor:pointer;transition:background 0.15s;display:flex;flex-direction:column;gap:4px;}
+.ac-tile:hover{background:rgba(255,255,255,0.1);}
+.ac-tile.on{background:rgba(0,120,212,0.38);}
+.ac-slider-row{display:flex;align-items:center;gap:10px;}
+.ac-slider-row label{font-size:12px;color:rgba(255,255,255,0.45);width:72px;}
+.ac-slider-row input[type=range]{flex:1;accent-color:var(--accent);height:3px;}
+
+/* NOTIFICATIONS */
+#notif-stack{position:fixed;bottom:calc(var(--taskbar-h)+8px);right:8px;width:368px;z-index:6500;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.notif{background:rgba(30,30,30,0.97);border:1px solid var(--glass-border);border-radius:10px;padding:13px 15px;pointer-events:all;animation:notifIn 0.3s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(20px);display:flex;gap:11px;align-items:flex-start;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+@keyframes notifIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+.notif-icon{font-size:24px;flex-shrink:0;}
+.notif-body{flex:1;min-width:0;}
+.notif-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.notif-text{font-size:12px;color:rgba(255,255,255,0.55);line-height:1.4;}
+.notif-close{cursor:pointer;color:rgba(255,255,255,0.35);font-size:14px;flex-shrink:0;padding:2px;}
+.notif-close:hover{color:#fff;}
+
+/* MISC */
+#brightness-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);pointer-events:none;z-index:9998;transition:background 0.3s;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;gap:2px;}
+.cal-day-name{font-size:10px;color:rgba(255,255,255,0.3);padding:3px;}
+.cal-day{font-size:12px;padding:5px 3px;border-radius:50%;cursor:pointer;transition:background 0.1s;}
+.cal-day:hover{background:rgba(255,255,255,0.09);}
+.cal-day.today{background:var(--accent);color:#fff;}
+.cal-day.other-month{color:rgba(255,255,255,0.2);}
+</style>
+</head>
+<body>
+<div id="brightness-overlay"></div>
+
+<!-- BOOT -->
+<div id="boot">
+  <div class="win-logo"><div></div><div></div><div></div><div></div></div>
+  <div style="margin-top:56px"><div class="boot-spinner"></div></div>
+  <div style="position:absolute;bottom:60px;font-size:12px;color:rgba(255,255,255,0.3)">© Microsoft Corporation</div>
+</div>
+
+<!-- LOCK SCREEN -->
+<div id="lockscreen">
+  <div id="ls-bg"></div>
+  <div class="ls-stars" id="ls-stars"></div>
+  <div class="ls-time">
+    <div class="t" id="ls-time">00:00</div>
+    <div class="d" id="ls-date">Monday, January 1</div>
+  </div>
+  <div class="ls-hint">↑ Click or press any key to unlock</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginscreen">
+  <div class="login-box">
+    <div class="login-avatar">👤</div>
+    <div class="login-name">Windows User</div>
+    <div class="login-input-wrap">
+      <input class="login-input" id="login-pw" type="password" placeholder="PIN or password" autocomplete="off">
+      <button class="login-arrow" id="login-submit">›</button>
+    </div>
+    <div class="login-hint">Leave blank and press → to sign in</div>
+  </div>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+  <div id="wallpaper"></div>
+  <div id="desktop-icons">
+    <div class="desk-icon" ondblclick="openApp('browser')" onclick="selectIcon(this)"><div class="di">🌐</div><div class="dl">Edge</div></div>
+    <div class="desk-icon" ondblclick="openApp('explorer')" onclick="selectIcon(this)"><div class="di">📁</div><div class="dl">File Explorer</div></div>
+    <div class="desk-icon" ondblclick="openApp('notepad')" onclick="selectIcon(this)"><div class="di">📝</div><div class="dl">Notepad</div></div>
+    <div class="desk-icon" ondblclick="openApp('terminal')" onclick="selectIcon(this)"><div class="di">💻</div><div class="dl">Terminal</div></div>
+    <div class="desk-icon" ondblclick="openApp('calculator')" onclick="selectIcon(this)"><div class="di">🔢</div><div class="dl">Calculator</div></div>
+    <div class="desk-icon" ondblclick="openApp('settings')" onclick="selectIcon(this)"><div class="di">⚙️</div><div class="dl">Settings</div></div>
+    <div class="desk-icon" ondblclick="openApp('photos')" onclick="selectIcon(this)"><div class="di">🖼️</div><div class="dl">Photos</div></div>
+    <div class="desk-icon" ondblclick="openApp('paint')" onclick="selectIcon(this)"><div class="di">🎨</div><div class="dl">Paint</div></div>
+    <div class="desk-icon" ondblclick="openApp('music')" onclick="selectIcon(this)"><div class="di">🎵</div><div class="dl">Music</div></div>
+    <div class="desk-icon" ondblclick="openApp('maps')" onclick="selectIcon(this)"><div class="di">🗺️</div><div class="dl">Maps</div></div>
+  </div>
+</div>
+
+<!-- TASKBAR -->
+<div id="taskbar">
+  <div id="tb-left">
+    <div class="tb-btn" onclick="toggleWidgets()" title="Widgets">🗂️</div>
+  </div>
+  <div id="tb-center">
+    <div class="tb-btn" id="start-btn" onclick="toggleStart()">⊞</div>
+    <div class="tb-btn" onclick="openApp('browser')" title="Edge">🌐</div>
+    <div class="tb-btn" onclick="openApp('explorer')" title="File Explorer">📁</div>
+    <div class="tb-btn" onclick="openApp('terminal')" title="Terminal">💻</div>
+    <div class="tb-btn" onclick="openApp('notepad')" title="Notepad">📝</div>
+    <div id="tb-running"></div>
+  </div>
+  <div id="tb-right">
+    <div class="sys-tray" onclick="toggleActionCenter()">📶 🔊 🔋</div>
+    <div class="tb-time" onclick="toggleActionCenter()">
+      <div id="tb-time-display">12:00 PM</div>
+      <div id="tb-date-display">1/1/2025</div>
+    </div>
+    <div style="width:4px;height:32px;cursor:pointer;border-left:1px solid rgba(255,255,255,0.1)" onclick="showDesktopToggle()" title="Show desktop"></div>
+  </div>
+</div>
+
+<!-- START MENU -->
+<div id="start-menu">
+  <div class="sm-search">
+    <span style="font-size:14px">🔍</span>
+    <input type="text" id="sm-search-input" placeholder="Search for apps, settings, files...">
+  </div>
+  <div id="sm-search-results"></div>
+  <div id="sm-main-content">
+    <div>
+      <div class="sm-sec-hdr"><span class="sm-sec-title">Pinned</span><span class="sm-sec-more">All apps ›</span></div>
+      <div class="sm-pinned" id="sm-pinned"></div>
+    </div>
+    <div>
+      <div class="sm-sec-hdr"><span class="sm-sec-title">Recommended</span><span class="sm-sec-more">More ›</span></div>
+      <div class="sm-recommended" id="sm-recommended"></div>
+    </div>
+  </div>
+  <div class="sm-user-bar">
+    <div class="sm-avatar">👤</div>
+    <div style="font-size:13px">Windows User</div>
+    <div class="sm-power" onclick="triggerShutdown()" title="Power options">⏻</div>
+  </div>
+</div>
+
+<!-- ACTION CENTER -->
+<div id="action-center">
+  <div class="ac-tiles" id="ac-tiles"></div>
+  <div class="ac-slider-row">
+    <span style="font-size:16px">☀️</span>
+    <label>Brightness</label>
+    <input type="range" min="20" max="100" value="100" oninput="setBrightness(this.value)">
+  </div>
+  <div class="ac-slider-row">
+    <span style="font-size:16px">🔊</span>
+    <label>Volume</label>
+    <input type="range" min="0" max="100" value="75" id="vol-slider">
+  </div>
+  <div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:12px;display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:13px;color:rgba(255,255,255,0.5)">Connected to <span style="color:#60b4ff">HomeNetwork_5G</span></div>
+    <div style="font-size:12px;cursor:pointer;color:var(--accent-light)">Network settings</div>
+  </div>
+</div>
+
+<!-- WIDGETS -->
+<div id="widgets">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div style="font-size:18px;font-weight:600">Widgets</div>
+    <div style="cursor:pointer;opacity:0.5;font-size:18px;padding:4px" onclick="toggleWidgets()">✕</div>
+  </div>
+  <div class="widget">
+    <h3>Weather</h3>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="font-size:54px">⛅</div>
+      <div>
+        <div style="font-size:38px;font-weight:200">18°C</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.55)">Partly Cloudy</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px">Copenhagen, DK</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:14px;text-align:center">
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">Mon<br><span style="font-size:18px">🌤️</span><br>16°</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">Tue<br><span style="font-size:18px">🌧️</span><br>12°</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">Wed<br><span style="font-size:18px">⛅</span><br>15°</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">Thu<br><span style="font-size:18px">☀️</span><br>20°</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">Fri<br><span style="font-size:18px">🌤️</span><br>18°</div>
+    </div>
+  </div>
+  <div class="widget">
+    <h3>Calendar</h3>
+    <div id="widget-calendar"></div>
+  </div>
+  <div class="widget">
+    <h3>Top Stories</h3>
+    <div id="widget-news"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notif-stack"></div>
+
+<!-- CONTEXT MENU -->
+<div id="ctx-menu">
+  <div class="ctx-item" onclick="openApp('settings')">⚙️ Display settings</div>
+  <div class="ctx-item" onclick="openApp('settings')">🖌️ Personalize</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="sortDesktopIcons()">↕️ Sort icons</div>
+  <div class="ctx-item" onclick="showNotif('Desktop','Refreshed successfully','🔄')">🔄 Refresh</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item">📋 Paste</div>
+  <div class="ctx-item" onclick="openApp('terminal')">💻 Open in Terminal</div>
+  <div class="ctx-item" onclick="openApp('notepad')">📝 New text file</div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// CORE STATE
+// ════════════════════════════════════════════════════════════
+const OS = {
+  windows: {}, zCounter: 4200, focused: null,
+  startOpen: false, widgetsOpen: false, acOpen: false,
+  desktopHidden: false, brightness: 100
+};
+let winIdSeq = 0;
+
+// ════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  initClock(); buildStars(); buildStartMenu(); buildAC(); buildWidgetCalendar(); buildWidgetNews();
+  setTimeout(() => {
+    const boot = document.getElementById('boot');
+    boot.classList.add('hide');
+    setTimeout(() => {
+      boot.remove();
+      const ls = document.getElementById('lockscreen');
+      ls.style.display = 'flex';
+    }, 1000);
+  }, 2400);
+});
+
+function buildStars() {
+  const c = document.getElementById('ls-stars');
+  for (let i = 0; i < 180; i++) {
+    const s = document.createElement('div');
+    const size = Math.random() * 2 + 0.5;
+    s.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:#fff;border-radius:50%;left:${Math.random()*100}%;top:${Math.random()*100}%;opacity:${Math.random()*0.6+0.1};animation:twinkle ${2+Math.random()*3}s ease-in-out ${Math.random()*3}s infinite alternate;`;
+    c.appendChild(s);
+  }
+  const style = document.createElement('style');
+  style.textContent = '@keyframes twinkle{from{opacity:0.1}to{opacity:0.8}}';
+  document.head.appendChild(style);
+}
+
+// ════════════════════════════════════════════════════════════
+// CLOCK
+// ════════════════════════════════════════════════════════════
+function initClock() { updateClock(); setInterval(updateClock, 1000); }
+function updateClock() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const pad = n => String(n).padStart(2,'0');
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('ls-time').textContent = `${pad(h12)}:${pad(m)}`;
+  document.getElementById('ls-date').textContent = `${DAYS[now.getDay()]}, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
+  document.getElementById('tb-time-display').textContent = `${h12}:${pad(m)} ${ampm}`;
+  document.getElementById('tb-date-display').textContent = `${now.getMonth()+1}/${now.getDate()}/${now.getFullYear()}`;
+}
+
+// ════════════════════════════════════════════════════════════
+// LOCK / LOGIN
+// ════════════════════════════════════════════════════════════
+document.getElementById('lockscreen').addEventListener('click', doUnlock);
+document.addEventListener('keydown', e => {
+  const ls = document.getElementById('lockscreen');
+  if (ls && ls.style.display !== 'none' && !ls.classList.contains('hide')) doUnlock();
+});
+function doUnlock() {
+  const ls = document.getElementById('lockscreen');
+  ls.classList.add('hide');
+  setTimeout(() => {
+    ls.style.display = 'none';
+    const login = document.getElementById('loginscreen');
+    login.classList.add('visible');
+    setTimeout(() => document.getElementById('login-pw').focus(), 100);
+  }, 700);
+}
+document.getElementById('login-submit').onclick = doLogin;
+document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function doLogin() {
+  const login = document.getElementById('loginscreen');
+  login.classList.add('hide');
+  setTimeout(() => { login.style.display = 'none'; }, 400);
+  setTimeout(() => showNotif('Welcome back!', 'Windows User — Signed in', '👤'), 600);
+  setTimeout(() => showNotif('Windows Security', 'Your PC is protected', '🛡️'), 3000);
+}
+
+// ════════════════════════════════════════════════════════════
+// DESKTOP
+// ════════════════════════════════════════════════════════════
+document.getElementById('desktop').addEventListener('click', e => {
+  if (e.target.id === 'desktop' || e.target.id === 'wallpaper') {
+    closeAllPopups(); deselectIcons();
+  }
+});
+document.getElementById('desktop').addEventListener('contextmenu', e => {
+  e.preventDefault(); closeAllPopups();
+  const m = document.getElementById('ctx-menu');
+  const x = Math.min(e.clientX, window.innerWidth - 230);
+  const y = Math.min(e.clientY, window.innerHeight - 220);
+  m.style.left = x + 'px'; m.style.top = y + 'px';
+  m.classList.add('show');
+});
+function selectIcon(el) { deselectIcons(); el.classList.add('selected'); }
+function deselectIcons() { document.querySelectorAll('.desk-icon').forEach(i => i.classList.remove('selected')); }
+function sortDesktopIcons() { showNotif('Desktop', 'Icons sorted by name', '↕️'); }
+function showDesktopToggle() {
+  OS.desktopHidden = !OS.desktopHidden;
+  Object.values(OS.windows).forEach(w => {
+    const el = document.getElementById('win-' + w.id);
+    if (!el) return;
+    if (OS.desktopHidden) el.classList.add('minimized');
+    else if (!w.manuallyMinimized) el.classList.remove('minimized');
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// START MENU
+// ════════════════════════════════════════════════════════════
+const PINNED_APPS = [
+  {icon:'🌐',label:'Edge',app:'browser'},{icon:'📁',label:'Explorer',app:'explorer'},
+  {icon:'📝',label:'Notepad',app:'notepad'},{icon:'💻',label:'Terminal',app:'terminal'},
+  {icon:'⚙️',label:'Settings',app:'settings'},{icon:'🔢',label:'Calculator',app:'calculator'},
+  {icon:'🖼️',label:'Photos',app:'photos'},{icon:'🎨',label:'Paint',app:'paint'},
+  {icon:'🎵',label:'Music',app:'music'},{icon:'🗺️',label:'Maps',app:'maps'},
+  {icon:'📅',label:'Calendar',app:'notepad'},{icon:'📧',label:'Mail',app:'browser'},
+];
+const REC_ITEMS = [
+  {icon:'📄',name:'notes.txt',sub:'Just now',app:'notepad'},
+  {icon:'📊',name:'budget.xlsx',sub:'Yesterday',app:'notepad'},
+  {icon:'🖼️',name:'screenshot.png',sub:'2 days ago',app:'photos'},
+  {icon:'📁',name:'Documents',sub:'Frequently opened',app:'explorer'},
+];
+const ALL_APPS = [
+  {icon:'🌐',label:'Microsoft Edge',app:'browser'},
+  {icon:'📁',label:'File Explorer',app:'explorer'},
+  {icon:'📝',label:'Notepad',app:'notepad'},
+  {icon:'💻',label:'Windows Terminal',app:'terminal'},
+  {icon:'⚙️',label:'Settings',app:'settings'},
+  {icon:'🔢',label:'Calculator',app:'calculator'},
+  {icon:'🖼️',label:'Photos',app:'photos'},
+  {icon:'🎨',label:'Paint',app:'paint'},
+  {icon:'🎵',label:'Groove Music',app:'music'},
+  {icon:'🗺️',label:'Maps',app:'maps'},
+];
+
+function buildStartMenu() {
+  const pinEl = document.getElementById('sm-pinned');
+  PINNED_APPS.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'sm-pin';
+    el.innerHTML = `<div class="icon">${a.icon}</div><div class="label">${a.label}</div>`;
+    el.onclick = () => { openApp(a.app); closeStart(); };
+    pinEl.appendChild(el);
+  });
+  const recEl = document.getElementById('sm-recommended');
+  REC_ITEMS.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'sm-rec';
+    el.innerHTML = `<span style="font-size:22px">${r.icon}</span><div><div style="font-size:13px;font-weight:500">${r.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${r.sub}</div></div>`;
+    el.onclick = () => { openApp(r.app); closeStart(); };
+    recEl.appendChild(el);
+  });
+  const si = document.getElementById('sm-search-input');
+  const sr = document.getElementById('sm-search-results');
+  const mc = document.getElementById('sm-main-content');
+  si.addEventListener('input', () => {
+    const q = si.value.toLowerCase().trim();
+    if (!q) { sr.className = ''; mc.style.display = ''; return; }
+    mc.style.display = 'none';
+    const results = ALL_APPS.filter(a => a.label.toLowerCase().includes(q));
+    sr.innerHTML = '';
+    if (results.length === 0) {
+      sr.innerHTML = `<div style="padding:16px;text-align:center;color:rgba(255,255,255,0.4);font-size:13px">No results for "${q}"</div>`;
+    } else {
+      results.forEach(a => {
+        const el = document.createElement('div');
+        el.className = 'sm-search-result';
+        el.innerHTML = `<span style="font-size:20px">${a.icon}</span><span>${a.label}</span>`;
+        el.onclick = () => { openApp(a.app); closeStart(); };
+        sr.appendChild(el);
+      });
+    }
+    sr.className = 'show';
+  });
+}
+
+function toggleStart() {
+  const sm = document.getElementById('start-menu');
+  if (sm.classList.contains('show')) { closeStart(); return; }
+  closeAllPopups();
+  sm.classList.add('show');
+  document.getElementById('start-btn').classList.add('active');
+  document.getElementById('sm-search-input').focus();
+}
+function closeStart() {
+  document.getElementById('start-menu').classList.remove('show');
+  document.getElementById('start-btn').classList.remove('active');
+  document.getElementById('sm-search-input').value = '';
+  document.getElementById('sm-search-results').className = '';
+  document.getElementById('sm-main-content').style.display = '';
+}
+
+// ════════════════════════════════════════════════════════════
+// ACTION CENTER
+// ════════════════════════════════════════════════════════════
+const AC_TILES = [
+  {key:'wifi',icon:'📶',label:'Wi-Fi',on:true},{key:'bt',icon:'🔵',label:'Bluetooth',on:false},
+  {key:'airplane',icon:'✈️',label:'Airplane',on:false},{key:'night',icon:'🌙',label:'Night light',on:false},
+  {key:'focus',icon:'🎯',label:'Focus',on:false},{key:'vpn',icon:'🔒',label:'VPN',on:false},
+];
+const acState = {};
+function buildAC() {
+  const el = document.getElementById('ac-tiles');
+  AC_TILES.forEach(t => {
+    acState[t.key] = t.on;
+    const tile = document.createElement('div');
+    tile.className = 'ac-tile' + (t.on ? ' on' : '');
+    tile.id = 'act-' + t.key;
+    tile.innerHTML = `<div style="font-size:18px">${t.icon}</div><div style="font-size:11px;color:rgba(255,255,255,0.7)">${t.label}</div>`;
+    tile.onclick = () => {
+      acState[t.key] = !acState[t.key];
+      tile.classList.toggle('on', acState[t.key]);
+    };
+    el.appendChild(tile);
+  });
+}
+function toggleActionCenter() {
+  const ac = document.getElementById('action-center');
+  if (ac.classList.contains('show')) { ac.classList.remove('show'); return; }
+  closeAllPopups();
+  ac.classList.add('show');
+}
+function setBrightness(v) {
+  document.getElementById('brightness-overlay').style.background = `rgba(0,0,0,${(100-v)/120})`;
+}
+
+// ════════════════════════════════════════════════════════════
+// WIDGETS
+// ════════════════════════════════════════════════════════════
+function toggleWidgets() { document.getElementById('widgets').classList.toggle('show'); }
+function buildWidgetCalendar() {
+  const now = new Date();
+  const y = now.getFullYear(), mo = now.getMonth();
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:14px;font-weight:600">${MONTHS[mo]} ${y}</span><div style="display:flex;gap:4px"><span style="cursor:pointer;opacity:0.5;padding:2px 6px">‹</span><span style="cursor:pointer;opacity:0.5;padding:2px 6px">›</span></div></div>`;
+  html += '<div class="cal-grid">';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => html += `<div class="cal-day-name">${d}</div>`);
+  const first = new Date(y,mo,1).getDay();
+  const prev = new Date(y,mo,0).getDate();
+  const days = new Date(y,mo+1,0).getDate();
+  for (let i=0;i<first;i++) html += `<div class="cal-day other-month">${prev-first+1+i}</div>`;
+  for (let d=1;d<=days;d++) html += `<div class="cal-day${d===now.getDate()?' today':''}">${d}</div>`;
+  const rem = 42 - first - days;
+  for (let d=1;d<=rem;d++) html += `<div class="cal-day other-month">${d}</div>`;
+  html += '</div>';
+  document.getElementById('widget-calendar').innerHTML = html;
+}
+function buildWidgetNews() {
+  const NEWS = [
+    {title:'Global tech leaders meet at Copenhagen summit',src:'Tech Today'},
+    {title:'New renewable energy record set in Denmark',src:'Green Energy News'},
+    {title:'Scientists discover potential cure for common cold',src:'Science Daily'},
+    {title:'Stock markets reach all-time highs worldwide',src:'Financial Times'},
+    {title:'SpaceX launches next-gen satellite constellation',src:'Space Watch'},
+  ];
+  const el = document.getElementById('widget-news');
+  NEWS.forEach(n => {
+    const d = document.createElement('div');
+    d.style.cssText = 'padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;';
+    d.innerHTML = `<div style="font-size:13px;line-height:1.4">${n.title}</div><div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:3px">${n.src}</div>`;
+    d.onmouseenter = () => d.querySelector('div').style.color = 'var(--accent-light)';
+    d.onmouseleave = () => d.querySelector('div').style.color = '';
+    el.appendChild(d);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════════════════════════════════
+function showNotif(title, text, icon='🔔') {
+  const stack = document.getElementById('notif-stack');
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.innerHTML = `<div class="notif-icon">${icon}</div><div class="notif-body"><div class="notif-title">${title}</div><div class="notif-text">${text}</div></div><div class="notif-close" onclick="this.closest('.notif').remove()">✕</div>`;
+  stack.appendChild(n);
+  setTimeout(() => n.classList && n.remove(), 5000);
+}
+
+// ════════════════════════════════════════════════════════════
+// WINDOW MANAGER
+// ════════════════════════════════════════════════════════════
+function createWindow(cfg) {
+  const id = ++winIdSeq;
+  const w = {id, minimized:false, maximized:false, prevRect:null, app:cfg.app||''};
+  OS.windows[id] = w;
+  const win = document.createElement('div');
+  win.className = 'window';
+  win.id = 'win-' + id;
+  win.style.cssText = `left:${cfg.x||80+id*22}px;top:${cfg.y||60+id*18}px;width:${cfg.w||800}px;height:${cfg.h||560}px;`;
+  win.innerHTML = `
+    <div class="win-titlebar" id="wtb-${id}">
+      <span class="win-title-icon">${cfg.icon||'🪟'}</span>
+      <span class="win-title-text" id="wtitle-${id}">${cfg.title||'Window'}</span>
+      <div class="win-controls">
+        <div class="win-ctrl" onclick="minimizeWin(${id})" title="Minimize">─</div>
+        <div class="win-ctrl" onclick="maximizeWin(${id})" title="Maximize/Restore" id="wmax-${id}">⬜</div>
+        <div class="win-ctrl close" onclick="closeWin(${id})" title="Close">✕</div>
+      </div>
+    </div>
+    <div class="win-content" id="wc-${id}"></div>
+    <div class="win-resize" id="wr-${id}"></div>`;
+  document.body.appendChild(win);
+  focusWin(id);
+  makeDraggable(id);
+  makeResizable(id, cfg.minW||280, cfg.minH||180);
+  addTBBtn(id, cfg.title||'Window', cfg.icon||'🪟');
+  return id;
+}
+function focusWin(id) {
+  document.querySelectorAll('.window').forEach(w => w.classList.remove('focused'));
+  const el = document.getElementById('win-'+id);
+  if (el) { el.classList.add('focused'); el.style.zIndex = ++OS.zCounter; OS.focused = id; }
+  document.querySelectorAll('#tb-running .tb-btn').forEach(b => b.classList.remove('active'));
+  const tbBtn = document.getElementById('tbr-'+id);
+  if (tbBtn) tbBtn.classList.add('active');
+}
+function minimizeWin(id) {
+  document.getElementById('win-'+id)?.classList.add('minimized');
+  OS.windows[id].minimized = true;
+  OS.windows[id].manuallyMinimized = true;
+  const b = document.getElementById('tbr-'+id);
+  if (b) b.classList.remove('active');
+}
+function maximizeWin(id) {
+  const el = document.getElementById('win-'+id);
+  const ws = OS.windows[id];
+  if (ws.maximized) {
+    const r = ws.prevRect;
+    el.style.cssText = `left:${r.x}px;top:${r.y}px;width:${r.w}px;height:${r.h}px;`;
+    el.classList.remove('maximized');
+    ws.maximized = false;
+    document.getElementById('wmax-'+id).textContent = '⬜';
+  } else {
+    ws.prevRect = {x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight};
+    el.style.cssText = `left:0;top:0;width:100vw;height:calc(100vh - var(--taskbar-h));`;
+    el.classList.add('maximized');
+    ws.maximized = true;
+    document.getElementById('wmax-'+id).textContent = '❐';
+  }
+  focusWin(id);
+  // Trigger any resize handlers
+  window.dispatchEvent(new Event('resize'));
+}
+function closeWin(id) {
+  document.getElementById('win-'+id)?.remove();
+  document.getElementById('tbr-'+id)?.remove();
+  delete OS.windows[id];
+}
+function restoreWin(id) {
+  const el = document.getElementById('win-'+id);
+  el?.classList.remove('minimized');
+  OS.windows[id].minimized = false;
+  OS.windows[id].manuallyMinimized = false;
+  focusWin(id);
+}
+function addTBBtn(id, title, icon) {
+  const btn = document.createElement('div');
+  btn.className = 'tb-btn running active';
+  btn.id = 'tbr-' + id;
+  btn.title = title; btn.textContent = icon;
+  btn.onclick = () => {
+    const ws = OS.windows[id];
+    if (!ws) return;
+    if (ws.minimized) restoreWin(id);
+    else if (OS.focused === id) minimizeWin(id);
+    else focusWin(id);
+  };
+  document.getElementById('tb-running').appendChild(btn);
+}
+
+// ════════════════════════════════════════════════════════════
+// DRAG & RESIZE
+// ════════════════════════════════════════════════════════════
+function makeDraggable(id) {
+  const tb = document.getElementById('wtb-'+id);
+  let dragging=false, ox=0, oy=0;
+  tb.addEventListener('mousedown', e => {
+    if (e.target.closest('.win-controls')) return;
+    if (OS.windows[id]?.maximized) return;
+    focusWin(id); dragging=true;
+    ox = e.clientX - document.getElementById('win-'+id).offsetLeft;
+    oy = e.clientY - document.getElementById('win-'+id).offsetTop;
+    e.preventDefault();
+  });
+  tb.addEventListener('dblclick', e => {
+    if (!e.target.closest('.win-controls')) maximizeWin(id);
+  });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const el = document.getElementById('win-'+id);
+    if (!el) { dragging=false; return; }
+    el.style.left = Math.max(0,Math.min(e.clientX-ox,window.innerWidth-80))+'px';
+    el.style.top = Math.max(0,Math.min(e.clientY-oy,window.innerHeight-40))+'px';
+  });
+  document.addEventListener('mouseup', () => dragging=false);
+  document.getElementById('win-'+id).addEventListener('mousedown', () => focusWin(id));
+}
+function makeResizable(id, minW, minH) {
+  const rz = document.getElementById('wr-'+id);
+  let resizing=false, sx=0, sy=0, sw=0, sh=0;
+  rz.addEventListener('mousedown', e => {
+    const el = document.getElementById('win-'+id);
+    if (OS.windows[id]?.maximized) return;
+    resizing=true; sx=e.clientX; sy=e.clientY; sw=el.offsetWidth; sh=el.offsetHeight;
+    focusWin(id); e.preventDefault(); e.stopPropagation();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!resizing) return;
+    const el = document.getElementById('win-'+id);
+    if (!el) { resizing=false; return; }
+    el.style.width = Math.max(minW,sw+e.clientX-sx)+'px';
+    el.style.height = Math.max(minH,sh+e.clientY-sy)+'px';
+  });
+  document.addEventListener('mouseup', () => resizing=false);
+}
+
+// ════════════════════════════════════════════════════════════
+// APP LAUNCHER
+// ════════════════════════════════════════════════════════════
+const APP_DEFS = {
+  browser:    {title:'Microsoft Edge',icon:'🌐',w:1050,h:700,minW:500,minH:350,fn:buildBrowser},
+  explorer:   {title:'File Explorer', icon:'📁',w:900, h:600,minW:500,minH:300,fn:buildExplorer},
+  notepad:    {title:'Notepad',        icon:'📝',w:720, h:520,minW:350,minH:250,fn:buildNotepad},
+  terminal:   {title:'Windows Terminal',icon:'💻',w:740,h:500,minW:400,minH:250,fn:buildTerminal},
+  calculator: {title:'Calculator',    icon:'🔢',w:330, h:540,minW:290,minH:400,fn:buildCalculator},
+  settings:   {title:'Settings',      icon:'⚙️',w:880, h:640,minW:600,minH:400,fn:buildSettings},
+  photos:     {title:'Photos',        icon:'🖼️',w:860, h:600,minW:400,minH:300,fn:buildPhotos},
+  paint:      {title:'Paint',         icon:'🎨',w:860, h:620,minW:400,minH:300,fn:buildPaint},
+  music:      {title:'Groove Music',  icon:'🎵',w:760, h:540,minW:500,minH:350,fn:buildMusic},
+  maps:       {title:'Maps',          icon:'🗺️',w:860, h:600,minW:500,minH:350,fn:buildMaps},
+};
+function openApp(app) {
+  closeAllPopups();
+  const def = APP_DEFS[app];
+  if (!def) return;
+  const id = createWindow({...def, app});
+  def.fn(id);
+}
+function closeAllPopups() {
+  closeStart();
+  document.getElementById('action-center').classList.remove('show');
+  document.getElementById('ctx-menu').classList.remove('show');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#ctx-menu')) document.getElementById('ctx-menu').classList.remove('show');
+  if (!e.target.closest('#start-menu') && !e.target.closest('#start-btn')) closeStart();
+  if (!e.target.closest('#action-center') && !e.target.closest('.sys-tray') && !e.target.closest('.tb-time')) {
+    document.getElementById('action-center').classList.remove('show');
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// APP: BROWSER — Real Bing search via iframe + tab system
+// ════════════════════════════════════════════════════════════
+function buildBrowser(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText = 'display:flex;flex-direction:column;';
+  const tabsData = [{title:'New Tab',url:'newtab',favicon:'🌐'}];
+  let activeTab = 0;
+
+  wc.innerHTML = `
+    <div class="browser-tabs" id="btabs-${id}"></div>
+    <div class="browser-bar">
+      <button class="browser-nav-btn" id="bback-${id}" onclick="browserBack(${id})">←</button>
+      <button class="browser-nav-btn" id="bfwd-${id}" onclick="browserFwd(${id})" disabled>→</button>
+      <button class="browser-nav-btn" id="brefresh-${id}" onclick="browserRefresh(${id})">↻</button>
+      <div class="browser-url-wrap" onclick="this.querySelector('input').select()">
+        <span id="bsecure-${id}" style="font-size:12px;color:#4ec9b0">🔒</span>
+        <input class="browser-url" id="burl-${id}" value="edge://newtab" onkeydown="if(event.key==='Enter'){browserGo(${id},this.value);}">
+      </div>
+      <button class="browser-nav-btn" onclick="browserFav(${id})" title="Favorites">☆</button>
+      <button class="browser-nav-btn" onclick="browserSettings(${id})" title="Settings">⋯</button>
+    </div>
+    <div class="browser-loading" id="bloading-${id}"></div>
+    <div class="browser-content" id="bcontent-${id}"></div>`;
+
+  function renderTabs() {
+    const tb = document.getElementById('btabs-'+id);
+    tb.innerHTML = '';
+    tabsData.forEach((tab, i) => {
+      const t = document.createElement('div');
+      t.className = 'browser-tab' + (i===activeTab?' active':'');
+      t.innerHTML = `<span class="tab-favicon">${tab.favicon}</span><span class="tab-title">${tab.title}</span><span class="tab-close" onclick="closeTab(${id},${i},event)">✕</span>`;
+      t.onclick = (e) => { if (!e.target.classList.contains('tab-close')) { activeTab=i; renderTabs(); loadTabContent(i); } };
+      tb.appendChild(t);
+    });
+    const add = document.createElement('div');
+    add.className = 'add-tab-btn'; add.textContent = '+';
+    add.onclick = () => { tabsData.push({title:'New Tab',url:'newtab',favicon:'🌐'}); activeTab=tabsData.length-1; renderTabs(); loadTabContent(activeTab); };
+    tb.appendChild(add);
+  }
+
+  function loadTabContent(i) {
+    const tab = tabsData[i];
+    const urlInput = document.getElementById('burl-'+id);
+    if (urlInput) urlInput.value = tab.url === 'newtab' ? 'edge://newtab' : tab.url;
+    const content = document.getElementById('bcontent-'+id);
+    if (!content) return;
+    content.innerHTML = '';
+    if (tab.url === 'newtab') {
+      showHomepage(content, id);
+    } else {
+      // Real iframe
+      const loading = document.getElementById('bloading-'+id);
+      if (loading) loading.style.display='block';
+      const iframe = document.createElement('iframe');
+      iframe.src = tab.url;
+      iframe.style.cssText = 'width:100%;height:100%;border:none;';
+      iframe.onload = () => { if(loading) loading.style.display='none'; };
+      iframe.onerror = () => {
+        if(loading) loading.style.display='none';
+        content.innerHTML = errorPage(tab.url);
+      };
+      // Sandbox with permissions for real browsing
+      iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-top-navigation');
+      content.appendChild(iframe);
+    }
+  }
+
+  function showHomepage(container, wid) {
+    const hp = document.createElement('div');
+    hp.className = 'browser-homepage';
+    hp.innerHTML = `
+      <div style="text-align:center">
+        <div style="font-size:42px;margin-bottom:4px">🌐</div>
+        <div style="font-size:28px;font-weight:200;letter-spacing:0.05em">Microsoft Edge</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.35);margin-top:4px">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}</div>
+      </div>
+      <div class="browser-search-box">
+        <input id="bsearch-inp-${wid}" type="text" placeholder="Search the web or enter URL">
+        <button onclick="browserSearch(${wid})">🔍</button>
+      </div>
+      <div class="browser-speed-dials">
+        <div class="browser-dial" onclick="browserGo(${wid},'https://www.google.com')"><div class="bd-icon">🔍</div><div class="bd-label">Google</div></div>
+        <div class="browser-dial" onclick="browserGo(${wid},'https://www.youtube.com')"><div class="bd-icon">📺</div><div class="bd-label">YouTube</div></div>
+        <div class="browser-dial" onclick="browserGo(${wid},'https://www.wikipedia.org')"><div class="bd-icon">📚</div><div class="bd-label">Wikipedia</div></div>
+        <div class="browser-dial" onclick="browserGo(${wid},'https://www.github.com')"><div class="bd-icon">💻</div><div class="bd-label">GitHub</div></div>
+        <div class="browser-dial" onclick="browserGo(${wid},'https://www.reddit.com')"><div class="bd-icon">🤖</div><div class="bd-label">Reddit</div></div>
+      </div>`;
+    const inp = hp.querySelector('input');
+    if (inp) inp.addEventListener('keydown', e => { if (e.key==='Enter') browserSearch(wid); });
+    container.appendChild(hp);
+  }
+
+  function errorPage(url) {
+    return `<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#f5f5f5;gap:12px;color:#333;font-family:sans-serif">
+      <div style="font-size:48px">⚠️</div>
+      <div style="font-size:20px;font-weight:500">Can't reach this page</div>
+      <div style="font-size:14px;color:#666">${url}</div>
+      <div style="font-size:13px;color:#999;max-width:400px;text-align:center">The site may be unavailable, or your browser may need to allow cross-origin access.</div>
+    </div>`;
+  }
+
+  // Expose functions globally for this window instance
+  window['browserBack_'+id] = () => {
+    const iframe = document.querySelector('#bcontent-'+id+' iframe');
+    if (iframe) try { iframe.contentWindow.history.back(); } catch(e) {}
+  };
+  window['browserFwd_'+id] = () => {
+    const iframe = document.querySelector('#bcontent-'+id+' iframe');
+    if (iframe) try { iframe.contentWindow.history.forward(); } catch(e) {}
+  };
+
+  window.browserSearch = (wid) => {
+    const inp = document.getElementById('bsearch-inp-'+wid);
+    if (!inp || !inp.value) return;
+    browserGo(wid, 'https://www.bing.com/search?q=' + encodeURIComponent(inp.value));
+  };
+  window.browserGo = (wid, url) => {
+    let finalUrl = url;
+    if (finalUrl === 'edge://newtab') { tabsData[activeTab] = {title:'New Tab',url:'newtab',favicon:'🌐'}; renderTabs(); loadTabContent(activeTab); return; }
+    if (!finalUrl.startsWith('http') && !finalUrl.startsWith('edge://') && !finalUrl.startsWith('about:')) {
+      // Is it a search query or URL?
+      if (finalUrl.includes('.') && !finalUrl.includes(' ')) finalUrl = 'https://' + finalUrl;
+      else finalUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(finalUrl);
+    }
+    const domain = (() => { try { return new URL(finalUrl).hostname; } catch(e) { return finalUrl; } })();
+    tabsData[activeTab] = {title: domain, url: finalUrl, favicon: '🌐'};
+    renderTabs(); loadTabContent(activeTab);
+  };
+  window.browserBack = (wid) => {
+    const iframe = document.querySelector('#bcontent-'+wid+' iframe');
+    if (iframe) try { iframe.contentWindow.history.back(); } catch(e) {}
+  };
+  window.browserFwd = (wid) => {
+    const iframe = document.querySelector('#bcontent-'+wid+' iframe');
+    if (iframe) try { iframe.contentWindow.history.forward(); } catch(e) {}
+  };
+  window.browserRefresh = (wid) => {
+    const iframe = document.querySelector('#bcontent-'+wid+' iframe');
+    if (iframe) { try { iframe.contentWindow.location.reload(); } catch(e) {} }
+    else loadTabContent(activeTab);
+  };
+  window.browserFav = (wid) => showNotif('Favorites','Page added to favorites ⭐','⭐');
+  window.browserSettings = (wid) => showNotif('Edge','Browser settings coming soon','⚙️');
+  window.closeTab = (wid, i, e) => {
+    e.stopPropagation();
+    if (tabsData.length === 1) { closeWin(wid); return; }
+    tabsData.splice(i,1);
+    if (activeTab >= tabsData.length) activeTab = tabsData.length-1;
+    renderTabs(); loadTabContent(activeTab);
+  };
+
+  renderTabs();
+  loadTabContent(0);
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: FILE EXPLORER
+// ════════════════════════════════════════════════════════════
+const FS = {
+  'This PC': {type:'drive', children:{
+    'Desktop':     {type:'folder', children:{'readme.txt':{type:'file',icon:'📄',size:'1 KB'},'background.jpg':{type:'file',icon:'🖼️',size:'2.4 MB'}}},
+    'Documents':   {type:'folder', children:{'Resume.docx':{type:'file',icon:'📝',size:'84 KB'},'Budget_2024.xlsx':{type:'file',icon:'📊',size:'120 KB'},'Notes.txt':{type:'file',icon:'📄',size:'4 KB'},'Project Brief.pdf':{type:'file',icon:'📕',size:'640 KB'}}},
+    'Downloads':   {type:'folder', children:{'setup_chrome.exe':{type:'file',icon:'⚙️',size:'88 MB'},'photo_2024.jpg':{type:'file',icon:'🖼️',size:'3.2 MB'},'archive.zip':{type:'file',icon:'🗜️',size:'245 MB'},'video.mp4':{type:'file',icon:'🎬',size:'1.2 GB'}}},
+    'Pictures':    {type:'folder', children:{'Wallpaper.jpg':{type:'file',icon:'🖼️',size:'4.1 MB'},'Screenshot_001.png':{type:'file',icon:'📷',size:'890 KB'},'vacation':{type:'folder',children:{'beach.jpg':{type:'file',icon:'🖼️',size:'2.1 MB'}}}}},
+    'Music':       {type:'folder', children:{'playlist.m3u':{type:'file',icon:'🎼',size:'2 KB'},'favorites':{type:'folder',children:{'song1.mp3':{type:'file',icon:'🎵',size:'8.4 MB'}}}}},
+    'Videos':      {type:'folder', children:{'movie.mp4':{type:'file',icon:'🎬',size:'4.2 GB'},'clip.avi':{type:'file',icon:'📹',size:'320 MB'}}},
+    'C:\\ (Local Disk)': {type:'folder', children:{'Windows':{type:'folder',children:{'system32':{type:'folder',children:{}}}},'Program Files':{type:'folder',children:{}},'Users':{type:'folder',children:{}}}},
+  }}
+};
+function buildExplorer(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText = 'display:flex;flex-direction:column;';
+  let currentPath = ['This PC'];
+  let viewMode = 'grid';
+  let selectedItems = new Set();
+  let history = [['This PC']], histIdx = 0;
+
+  wc.innerHTML = `
+    <div class="toolbar">
+      <button class="tb-icon-btn" id="fe-back-${id}" onclick="feBack(${id})">←</button>
+      <button class="tb-icon-btn" id="fe-fwd-${id}" onclick="feFwd(${id})">→</button>
+      <button class="tb-icon-btn" onclick="feUp(${id})">↑</button>
+      <button class="tb-icon-btn" onclick="feRefresh(${id})">↻</button>
+      <div class="tb-sep"></div>
+      <div class="fe-path-bar" style="flex:1;display:flex;align-items:center;height:100%;padding:0">
+        <input class="fe-path-input" id="fe-path-${id}" value="This PC" onkeydown="if(event.key==='Enter')feNavigatePath(${id},this.value)">
+      </div>
+      <div class="tb-sep"></div>
+      <button class="tb-icon-btn" title="Grid view" onclick="feSetView(${id},'grid')">⊞</button>
+      <button class="tb-icon-btn" title="List view" onclick="feSetView(${id},'list')">☰</button>
+    </div>
+    <div class="toolbar" style="gap:0">
+      <button class="tb-text-btn" onclick="feNewFolder(${id})">📁 New folder</button>
+      <button class="tb-text-btn" onclick="feNewFile(${id})">📄 New file</button>
+      <div class="tb-sep"></div>
+      <button class="tb-text-btn" id="fe-cut-${id}" onclick="feCut(${id})" style="opacity:0.5">✂️ Cut</button>
+      <button class="tb-text-btn" onclick="feCopy(${id})" style="opacity:0.5">📋 Copy</button>
+      <button class="tb-text-btn" onclick="fePaste(${id})" style="opacity:0.5">📌 Paste</button>
+      <div class="tb-sep"></div>
+      <button class="tb-text-btn" onclick="feDelete(${id})" style="color:#f66;opacity:0.5">🗑️ Delete</button>
+      <button class="tb-text-btn" id="fe-sort-${id}" onclick="feToggleSort(${id})">↕️ Sort</button>
+    </div>
+    <div class="fe-body">
+      <div class="fe-sidebar" id="fe-sidebar-${id}"></div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="fe-main grid-view" id="fe-main-${id}"></div>
+        <div class="statusbar" id="fe-status-${id}"><span>Ready</span></div>
+      </div>
+    </div>`;
+
+  function buildSidebar() {
+    const sb = document.getElementById('fe-sidebar-'+id);
+    const groups = [
+      {header:'Quick access', items:[
+        {icon:'⭐',label:'Quick access'},{icon:'🖥️',label:'Desktop',path:['This PC','Desktop']},
+        {icon:'📥',label:'Downloads',path:['This PC','Downloads']},{icon:'📄',label:'Documents',path:['This PC','Documents']},
+        {icon:'🖼️',label:'Pictures',path:['This PC','Pictures']},
+      ]},
+      {header:'This PC', items:[
+        {icon:'💾',label:'This PC',path:['This PC']},
+        {icon:'🖴',label:'Local Disk (C:)',path:['This PC','C:\\ (Local Disk)']},
+      ]},
+    ];
+    sb.innerHTML = '';
+    groups.forEach(g => {
+      const gh = document.createElement('div'); gh.className='fe-sidebar-group';
+      gh.innerHTML = `<div class="fe-sidebar-header">${g.header}</div>`;
+      g.items.forEach(it => {
+        const el = document.createElement('div');
+        const isActive = it.path && it.path.join('/')=== currentPath.join('/');
+        el.className = 'fe-sidebar-item' + (isActive?' active':'');
+        el.innerHTML = `${it.icon} ${it.label}`;
+        el.onclick = () => { if (it.path) feNavigate(it.path); };
+        gh.appendChild(el);
+      });
+      sb.appendChild(gh);
+    });
+  }
+
+  function getNode(path) {
+    let node = FS;
+    for (const seg of path) { node = node[seg] || node.children?.[seg]; if (!node) return null; }
+    return node;
+  }
+
+  function feNavigate(path) {
+    currentPath = path;
+    history = history.slice(0, histIdx+1);
+    history.push([...path]); histIdx++;
+    renderMain(); buildSidebar();
+    document.getElementById('fe-path-'+id).value = path.join(' › ');
+    document.getElementById('fe-back-'+id).style.opacity = histIdx>0?'1':'0.3';
+    document.getElementById('fe-fwd-'+id).style.opacity = histIdx<history.length-1?'1':'0.3';
+  }
+  window['feBack_'+id] = function() { if (histIdx>0) { histIdx--; currentPath=[...history[histIdx]]; renderMain(); buildSidebar(); document.getElementById('fe-path-'+id).value=currentPath.join(' › '); } };
+  window['feFwd_'+id] = function() { if (histIdx<history.length-1) { histIdx++; currentPath=[...history[histIdx]]; renderMain(); buildSidebar(); document.getElementById('fe-path-'+id).value=currentPath.join(' › '); } };
+  window.feBack = (wid) => window['feBack_'+wid]?.();
+  window.feFwd = (wid) => window['feFwd_'+wid]?.();
+  window.feUp = (wid) => { if (currentPath.length>1) feNavigate(currentPath.slice(0,-1)); };
+  window.feRefresh = (wid) => { renderMain(); showNotif('File Explorer','Folder refreshed','🔄'); };
+  window.feSetView = (wid, mode) => { viewMode=mode; renderMain(); };
+  window.feNavigatePath = (wid, pathStr) => {
+    const parts = pathStr.split(/[›/\\]/g).map(s=>s.trim()).filter(Boolean);
+    if (parts.length && FS[parts[0]]) feNavigate(parts); else showNotif('File Explorer','Path not found','❌');
+  };
+  window.feNewFolder = (wid) => {
+    const name = prompt('Folder name:','New Folder'); if (!name) return;
+    const node = getNode(currentPath);
+    if (node?.children) { node.children[name] = {type:'folder',children:{}}; renderMain(); showNotif('File Explorer',`"${name}" created`,'📁'); }
+  };
+  window.feNewFile = (wid) => {
+    const name = prompt('File name:','New Text.txt'); if (!name) return;
+    const node = getNode(currentPath);
+    if (node?.children) { node.children[name] = {type:'file',icon:'📄',size:'0 B'}; renderMain(); showNotif('File Explorer',`"${name}" created`,'📄'); }
+  };
+  window.feCut = window.feCopy = window.fePaste = (wid) => showNotif('File Explorer','Clipboard operation','📋');
+  window.feDelete = (wid) => {
+    if (selectedItems.size===0) return;
+    selectedItems.forEach(name => {
+      const node = getNode(currentPath);
+      if (node?.children) delete node.children[name];
+    });
+    selectedItems.clear(); renderMain();
+  };
+  window.feToggleSort = (wid) => { renderMain(); };
+
+  function renderMain() {
+    selectedItems.clear();
+    const main = document.getElementById('fe-main-'+id);
+    if (!main) return;
+    main.className = 'fe-main ' + (viewMode==='grid'?'grid-view':'list-view');
+    main.innerHTML = '';
+    const node = getNode(currentPath);
+    if (!node) { main.innerHTML='<div style="padding:20px;opacity:0.4">Location not found</div>'; return; }
+    const children = node.children || node;
+    const entries = Object.entries(children).filter(([k]) => k !== 'type');
+    if (entries.length === 0) { main.innerHTML='<div style="padding:20px;opacity:0.4;font-size:13px">This folder is empty</div>'; return; }
+    entries.forEach(([name, info]) => {
+      const isFolder = info.type === 'folder' || info.type === 'drive';
+      const icon = isFolder ? '📁' : (info.icon || '📄');
+      const el = document.createElement('div');
+      if (viewMode === 'grid') {
+        el.className = 'fe-item-grid';
+        el.innerHTML = `<div class="fi">${icon}</div><div class="fn">${name}</div>`;
+      } else {
+        el.className = 'fe-item-list';
+        el.innerHTML = `<span class="fi">${icon}</span><span style="flex:1;font-size:13px">${name}</span><span style="font-size:11px;color:rgba(255,255,255,0.35)">${isFolder?'Folder':(info.size||'')}</span>`;
+      }
+      el.onclick = (e) => {
+        if (!e.shiftKey && !e.ctrlKey) { document.querySelectorAll(`#fe-main-${id} .fe-item-grid.selected, #fe-main-${id} .fe-item-list.selected`).forEach(x=>x.classList.remove('selected')); selectedItems.clear(); }
+        el.classList.toggle('selected'); selectedItems.has(name)?selectedItems.delete(name):selectedItems.add(name);
+        document.getElementById('fe-status-'+id).innerHTML = `<span>${selectedItems.size} item(s) selected</span>`;
+      };
+      el.ondblclick = () => {
+        if (isFolder) feNavigate([...currentPath, name]);
+        else { showNotif('File Explorer',`Opening ${name}...`,'📄'); }
+      };
+      main.appendChild(el);
+    });
+    const count = entries.length;
+    document.getElementById('fe-status-'+id).innerHTML = `<span>${count} item${count!==1?'s':''}</span><span>${currentPath.join(' › ')}</span>`;
+  }
+
+  buildSidebar();
+  feNavigate(['This PC']);
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: NOTEPAD — Full editor with menu, find/replace, save
+// ════════════════════════════════════════════════════════════
+function buildNotepad(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText = 'display:flex;flex-direction:column;';
+  let wordWrap = true, fontSize = 14, isDirty = false, currentFile = null;
+  const defaultText = `Welcome to Notepad
+
+This is a fully functional text editor.
+You can type, edit, find & replace, and save files.
+
+Keyboard shortcuts:
+  Ctrl+S   Save
+  Ctrl+O   Open
+  Ctrl+F   Find
+  Ctrl+H   Replace
+  Ctrl+A   Select all
+  Ctrl+Z   Undo
+
+Windows 11 Browser Edition`;
+
+  wc.innerHTML = `
+    <div class="np-menubar">
+      <div class="np-menu-item" onclick="npToggleMenu(${id},'file')">File
+        <div class="np-dropdown" id="npm-file-${id}">
+          <div class="np-dd-item" onclick="npNew(${id})">New <span>Ctrl+N</span></div>
+          <div class="np-dd-item" onclick="npOpen(${id})">Open... <span>Ctrl+O</span></div>
+          <div class="np-dd-sep"></div>
+          <div class="np-dd-item" onclick="npSave(${id})">Save <span>Ctrl+S</span></div>
+          <div class="np-dd-item" onclick="npSaveAs(${id})">Save As...</div>
+          <div class="np-sep"></div>
+          <div class="np-dd-item" onclick="npPrint(${id})">Print... <span>Ctrl+P</span></div>
+        </div>
+      </div>
+      <div class="np-menu-item" onclick="npToggleMenu(${id},'edit')">Edit
+        <div class="np-dropdown" id="npm-edit-${id}">
+          <div class="np-dd-item" onclick="npUndo(${id})">Undo <span>Ctrl+Z</span></div>
+          <div class="np-dd-sep"></div>
+          <div class="np-dd-item" onclick="npCut(${id})">Cut <span>Ctrl+X</span></div>
+          <div class="np-dd-item" onclick="npCopy(${id})">Copy <span>Ctrl+C</span></div>
+          <div class="np-dd-item" onclick="npPaste(${id})">Paste <span>Ctrl+V</span></div>
+          <div class="np-dd-sep"></div>
+          <div class="np-dd-item" onclick="npSelectAll(${id})">Select All <span>Ctrl+A</span></div>
+          <div class="np-dd-sep"></div>
+          <div class="np-dd-item" onclick="npFind(${id})">Find... <span>Ctrl+F</span></div>
+          <div class="np-dd-item" onclick="npFind(${id})">Replace... <span>Ctrl+H</span></div>
+        </div>
+      </div>
+      <div class="np-menu-item" onclick="npToggleMenu(${id},'format')">Format
+        <div class="np-dropdown" id="npm-format-${id}">
+          <div class="np-dd-item" onclick="npToggleWrap(${id})">Word Wrap ✓</div>
+          <div class="np-dd-item" onclick="npFont(${id},'bigger')">Larger Text  A+</div>
+          <div class="np-dd-item" onclick="npFont(${id},'smaller')">Smaller Text  A-</div>
+        </div>
+      </div>
+      <div class="np-menu-item" onclick="npToggleMenu(${id},'view')">View
+        <div class="np-dropdown" id="npm-view-${id}">
+          <div class="np-dd-item" onclick="npToggleStatusBar(${id})">Status Bar ✓</div>
+        </div>
+      </div>
+    </div>
+    <textarea class="np-editor" id="np-ta-${id}" spellcheck="true">${defaultText}</textarea>
+    <div class="np-find-bar" id="np-find-${id}">
+      <span style="font-size:13px;color:rgba(255,255,255,0.5)">Find:</span>
+      <input class="np-find-input" id="np-find-inp-${id}" placeholder="Search..." oninput="npDoFind(${id})">
+      <button class="tb-text-btn" onclick="npFindNext(${id})">Next</button>
+      <button class="tb-text-btn" onclick="npFindPrev(${id})">Prev</button>
+      <div class="tb-sep"></div>
+      <span style="font-size:13px;color:rgba(255,255,255,0.5)">Replace:</span>
+      <input class="np-find-input" id="np-rep-inp-${id}" placeholder="Replace with...">
+      <button class="tb-text-btn" onclick="npDoReplace(${id})">Replace</button>
+      <button class="tb-text-btn" onclick="npReplaceAll(${id})">All</button>
+      <button class="tb-icon-btn" style="margin-left:auto" onclick="document.getElementById('np-find-${id}').classList.remove('show')">✕</button>
+    </div>
+    <div class="statusbar" id="np-status-${id}">
+      <span id="np-pos-${id}">Ln 1, Col 1</span>
+      <span id="np-chars-${id}">0 characters</span>
+      <span>UTF-8</span>
+      <span>Windows (CRLF)</span>
+    </div>`;
+
+  const ta = document.getElementById('np-ta-'+id);
+  ta.style.fontSize = fontSize+'px';
+  ta.addEventListener('keyup', () => npUpdateStatus(id));
+  ta.addEventListener('click', () => npUpdateStatus(id));
+  ta.addEventListener('input', () => { isDirty=true; document.getElementById('wtitle-'+id).textContent = (currentFile||'Untitled')+'*'; });
+  ta.addEventListener('keydown', e => {
+    if (e.ctrlKey) {
+      if (e.key==='s') { e.preventDefault(); npSave(id); }
+      if (e.key==='f') { e.preventDefault(); npFind(id); }
+      if (e.key==='a') { e.preventDefault(); ta.select(); }
+      if (e.key==='n') { e.preventDefault(); npNew(id); }
+    }
+    if (e.key === 'Tab') { e.preventDefault(); const s=ta.selectionStart,en=ta.selectionEnd; ta.value=ta.value.substring(0,s)+'    '+ta.value.substring(en); ta.selectionStart=ta.selectionEnd=s+4; }
+  });
+
+  window.npToggleMenu = (wid, menu) => {
+    document.querySelectorAll('.np-dropdown').forEach(d => { if (d.id !== `npm-${menu}-${wid}`) d.classList.remove('show'); });
+    document.getElementById(`npm-${menu}-${wid}`)?.classList.toggle('show');
+  };
+  window.npNew = (wid) => { document.getElementById('np-ta-'+wid).value=''; isDirty=false; currentFile=null; document.getElementById('wtitle-'+wid).textContent='Untitled'; };
+  window.npSave = (wid) => {
+    const ta2 = document.getElementById('np-ta-'+wid);
+    const blob = new Blob([ta2.value], {type:'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = currentFile || 'untitled.txt';
+    a.click();
+    isDirty=false;
+    showNotif('Notepad', `Saved as ${currentFile||'untitled.txt'}`, '💾');
+    document.getElementById('wtitle-'+wid).textContent = currentFile || 'untitled.txt';
+  };
+  window.npSaveAs = (wid) => {
+    const name = prompt('Save as:',currentFile||'untitled.txt');
+    if (name) { currentFile=name; npSave(wid); }
+  };
+  window.npOpen = (wid) => {
+    const inp = document.createElement('input');
+    inp.type='file'; inp.accept='.txt,.md,.js,.html,.css,.json,.csv,.log';
+    inp.onchange = e => {
+      const f = e.target.files[0]; if (!f) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById('np-ta-'+wid).value = ev.target.result;
+        currentFile=f.name; isDirty=false;
+        document.getElementById('wtitle-'+wid).textContent=f.name;
+        npUpdateStatus(wid);
+      };
+      reader.readAsText(f);
+    };
+    inp.click();
+  };
+  window.npPrint = (wid) => window.print();
+  window.npUndo = (wid) => document.execCommand('undo');
+  window.npCut = (wid) => document.execCommand('cut');
+  window.npCopy = (wid) => document.execCommand('copy');
+  window.npPaste = (wid) => document.execCommand('paste');
+  window.npSelectAll = (wid) => document.getElementById('np-ta-'+wid).select();
+  window.npFind = (wid) => { document.getElementById('np-find-'+wid).classList.add('show'); document.getElementById('np-find-inp-'+wid).focus(); };
+  window.npDoFind = (wid) => {
+    const ta2=document.getElementById('np-ta-'+wid);
+    const q=document.getElementById('np-find-inp-'+wid).value;
+    if (!q) return;
+    const idx=ta2.value.toLowerCase().indexOf(q.toLowerCase());
+    if (idx>=0) { ta2.focus(); ta2.setSelectionRange(idx,idx+q.length); }
+  };
+  window.npFindNext = (wid) => npDoFind(wid);
+  window.npFindPrev = (wid) => npDoFind(wid);
+  window.npDoReplace = (wid) => {
+    const ta2=document.getElementById('np-ta-'+wid);
+    const q=document.getElementById('np-find-inp-'+wid).value;
+    const r=document.getElementById('np-rep-inp-'+wid).value;
+    if (!q) return;
+    const idx=ta2.value.indexOf(q);
+    if (idx>=0) { ta2.value=ta2.value.substring(0,idx)+r+ta2.value.substring(idx+q.length); }
+  };
+  window.npReplaceAll = (wid) => {
+    const ta2=document.getElementById('np-ta-'+wid);
+    const q=document.getElementById('np-find-inp-'+wid).value;
+    const r=document.getElementById('np-rep-inp-'+wid).value;
+    if (!q) return;
+    const count=(ta2.value.match(new RegExp(q,'g'))||[]).length;
+    ta2.value=ta2.value.split(q).join(r);
+    showNotif('Notepad',`Replaced ${count} occurrence(s)`,'📝');
+  };
+  window.npToggleWrap = (wid) => { wordWrap=!wordWrap; document.getElementById('np-ta-'+wid).style.whiteSpace=wordWrap?'pre-wrap':'pre'; };
+  window.npFont = (wid, dir) => { fontSize=dir==='bigger'?Math.min(32,fontSize+2):Math.max(8,fontSize-2); document.getElementById('np-ta-'+wid).style.fontSize=fontSize+'px'; };
+  window.npToggleStatusBar = (wid) => { const sb=document.getElementById('np-status-'+wid); sb.style.display=sb.style.display==='none'?'':'none'; };
+  window.npUpdateStatus = (wid) => {
+    const ta2=document.getElementById('np-ta-'+wid);
+    const text=ta2.value.substr(0,ta2.selectionStart);
+    const lines=text.split('\n');
+    document.getElementById('np-pos-'+wid).textContent=`Ln ${lines.length}, Col ${lines[lines.length-1].length+1}`;
+    document.getElementById('np-chars-'+wid).textContent=`${ta2.value.length} chars`;
+  };
+  document.addEventListener('click', e => { if (!e.target.closest('.np-menu-item')) document.querySelectorAll('.np-dropdown').forEach(d=>d.classList.remove('show')); });
+  npUpdateStatus(id);
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: TERMINAL — Full command interpreter
+// ════════════════════════════════════════════════════════════
+function buildTerminal(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText = 'display:flex;flex-direction:column;background:#0c0c0c;';
+  let cwd = 'C:\\Users\\User';
+  let history = [], hIdx = -1;
+  let env = {USERNAME:'User', COMPUTERNAME:'WINPC', OS:'Windows_11', PATH:'C:\\Windows\\system32', TEMP:'C:\\Temp'};
+  const aliases = {ls:'dir', cat:'type', clear:'cls', pwd:'cd', exit:'exit'};
+
+  wc.innerHTML = `
+    <div class="term-tabs">
+      <div class="term-tab active"><span>💻</span><span>PowerShell</span></div>
+      <div class="term-add-tab" onclick="addTermTab(${id})">+</div>
+    </div>
+    <div class="term-body" id="term-body-${id}">
+      <div class="term-line term-info">Windows PowerShell</div>
+      <div class="term-line term-info">Copyright (C) Microsoft Corporation. All rights reserved.</div>
+      <div class="term-line" style="height:4px"></div>
+      <div class="term-line term-warn">Try the new cross-platform PowerShell https://aka.ms/pscore6</div>
+      <div class="term-line" style="height:4px"></div>
+    </div>
+    <div style="background:#0c0c0c;display:flex;align-items:center;padding:2px 14px 8px;gap:0">
+      <span class="term-ps1" id="term-cwd-${id}">${cwd}</span>
+      <span class="term-ps2">&nbsp;PS&nbsp;</span>
+      <span class="term-ps3">$</span>
+      <input class="term-input" id="term-inp-${id}" autocomplete="off" spellcheck="false">
+    </div>`;
+
+  const inp = document.getElementById('term-inp-'+id);
+  inp.focus();
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const val = inp.value.trim();
+      inp.value = ''; hIdx = -1;
+      if (val) history.unshift(val);
+      printLine(id, `${cwd} PS $ ${val}`, 'term-prompt-typed');
+      if (val) processCommand(val.trim());
+    }
+    if (e.key === 'ArrowUp') { if (hIdx<history.length-1) { inp.value=history[++hIdx]; } e.preventDefault(); }
+    if (e.key === 'ArrowDown') { hIdx>0?inp.value=history[--hIdx]:inp.value=''; e.preventDefault(); }
+    if (e.key === 'Tab') { e.preventDefault(); /* autocomplete placeholder */ }
+    if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); document.getElementById('term-body-'+id).innerHTML=''; }
+  });
+
+  const style = document.createElement('style');
+  style.textContent=`.term-prompt-typed{color:#4ec9b0;font-family:'Consolas',monospace;font-size:13px;line-height:1.55;white-space:pre-wrap;}`;
+  document.head.appendChild(style);
+
+  function printLine(wid, text, cls='term-output') {
+    const body = document.getElementById('term-body-'+wid);
+    if (!body) return;
+    const line = document.createElement('div');
+    line.className = 'term-line ' + cls;
+    line.innerHTML = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+  function print(text, cls) { printLine(id, text, cls); }
+  function updateCwd() { const el=document.getElementById('term-cwd-'+id); if(el) el.textContent=cwd; }
+
+  function processCommand(cmd) {
+    const parts = cmd.split(/\s+/);
+    let verb = parts[0].toLowerCase();
+    const args = parts.slice(1);
+    if (aliases[verb]) verb = aliases[verb];
+    const raw = cmd.toLowerCase();
+
+    switch(verb) {
+      case 'help': case '/?':
+        print('The following commands are available:','term-info');
+        ['dir','cd','mkdir','rmdir','del','copy','move','ren','type','cls','echo','set','date','time','ver','whoami','hostname','ipconfig','ping','tracert','netstat','tasklist','taskkill','systeminfo','diskpart','format','chkdsk','sfc','reg','regedit','msconfig','powercfg','shutdown','restart','logoff','start','runas','where','find','sort','more','fc','xcopy','robocopy','help'].forEach((c,i) => {
+          if (i%4===0 && i>0) print('');
+          printLine(id, c.padEnd(18), 'term-info');
+        });
+        break;
+      case 'cls': document.getElementById('term-body-'+id).innerHTML=''; break;
+      case 'dir':
+        print('');
+        print(` Directory of ${cwd}`, 'term-info');
+        print('');
+        [['.','.','<DIR>'],['..','..','<DIR>'],['Documents','','<DIR>'],['Downloads','','<DIR>'],['Desktop','','<DIR>'],['readme.txt','1,024',''],['notes.txt','512',''],['config.json','2,048','']].forEach(([name,size,type]) => {
+          const d=new Date(); const ds=`${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`;
+          print(`${ds.padEnd(12)} ${d.toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}).padEnd(10)} ${type.padEnd(8)} ${size.padEnd(12)} ${name}`,'term-output');
+        });
+        print('');
+        print('               5 File(s)          3,584 bytes','term-output');
+        print('               3 Dir(s)  125,432,987,648 bytes free','term-output');
+        break;
+      case 'cd':
+        if (!args[0] || args[0]==='.') { print(cwd); break; }
+        if (args[0]==='..') { const parts2=cwd.split('\\'); if(parts2.length>1){parts2.pop();cwd=parts2.join('\\')||'C:\\';} }
+        else if (args[0].startsWith('C:')) cwd=args[0];
+        else cwd = cwd+'\\'+args[0];
+        updateCwd(); break;
+      case 'mkdir': case 'md':
+        if (!args[0]) { print("The syntax of the command is incorrect.",'term-error'); break; }
+        print(`Directory created: ${cwd}\\${args[0]}`,'term-success'); break;
+      case 'echo':
+        if (args[0]==='off') break;
+        print(args.join(' ')||'ECHO is on.'); break;
+      case 'set':
+        if (!args[0]) { Object.entries(env).forEach(([k,v]) => print(`${k}=${v}`)); break; }
+        const [k,v] = args[0].split('='); if(v!==undefined) env[k]=v; else print(env[k]||`Environment variable ${k} not defined`,'term-error');
+        break;
+      case 'ver': print(''); print('Microsoft Windows [Version 11.0.22631.3007]'); break;
+      case 'whoami': print(`${env.COMPUTERNAME.toLowerCase()}\\${env.USERNAME.toLowerCase()}`); break;
+      case 'hostname': print(env.COMPUTERNAME); break;
+      case 'date': print(new Date().toDateString()); break;
+      case 'time': print(new Date().toLocaleTimeString()); break;
+      case 'ipconfig':
+        print(''); print('Windows IP Configuration','term-info'); print('');
+        print('Ethernet adapter Ethernet:','term-output');
+        print('   Connection-specific DNS Suffix  . :');
+        print('   IPv4 Address. . . . . . . . . . : 192.168.1.105');
+        print('   Subnet Mask . . . . . . . . . . : 255.255.255.0');
+        print('   Default Gateway . . . . . . . . : 192.168.1.1');
+        print(''); print('Wireless LAN adapter Wi-Fi:','term-output');
+        print('   IPv4 Address. . . . . . . . . . : 192.168.1.106');
+        print('   Subnet Mask . . . . . . . . . . : 255.255.255.0');
+        print('   Default Gateway . . . . . . . . : 192.168.1.1');
+        break;
+      case 'ping':
+        const target = args[0]||'127.0.0.1';
+        print(`\nPinging ${target} with 32 bytes of data:`,'term-info');
+        [1,2,3,4].forEach(i => setTimeout(()=>print(`Reply from ${target}: bytes=32 time=${Math.floor(Math.random()*10)+1}ms TTL=128`,'term-success'),i*300));
+        setTimeout(()=>{print('');print(`Ping statistics for ${target}:`);print(`    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)`,'term-success');},1400);
+        break;
+      case 'tasklist':
+        print('');print('Image Name                     PID Session Name    Mem Usage','term-info');
+        print('========================= ======== ================ ============');
+        [['System Idle Process','0','Services','8 K'],['System','4','Services','156 K'],['smss.exe','524','Services','1,188 K'],['csrss.exe','712','Services','5,480 K'],['wininit.exe','800','Services','6,456 K'],['explorer.exe','3120','Console','68,432 K'],['chrome.exe','4840','Console','245,120 K'],['notepad.exe','5912','Console','12,288 K']].forEach(([n,pid,sess,mem]) => print(`${n.padEnd(26)} ${pid.padEnd(9)} ${sess.padEnd(17)} ${mem}`));
+        break;
+      case 'systeminfo':
+        print('');
+        [['Host Name','WINPC'],['OS Name','Microsoft Windows 11 Pro'],['OS Version','10.0.22631 N/A Build 22631'],['OS Manufacturer','Microsoft Corporation'],['System Type','x64-based PC'],['Processor','Intel(R) Core(TM) i9-13900K CPU @ 3.00GHz'],['Total Physical Memory','32,768 MB'],['Available Physical Memory','24,192 MB'],['Virtual Memory: Max Size','37,632 MB'],['Windows Directory','C:\\Windows'],['System Directory','C:\\Windows\\system32'],['Boot Device','\\Device\\HarddiskVolume1'],['System Locale','en-us;English (United States)'],['Time Zone','(UTC+01:00) Brussels, Copenhagen']].forEach(([k,v])=>print(`${k.padEnd(35)}: ${v}`));
+        break;
+      case 'shutdown': print('Shutting down...','term-warn'); setTimeout(()=>triggerShutdown(),1000); break;
+      case 'exit': closeWin(id); break;
+      case 'type':
+        if (!args[0]) { print("The syntax of the command is incorrect.",'term-error'); break; }
+        print(`Contents of ${args[0]}:`,'term-info');
+        print('This is a simulated file content.\nWindows 11 Browser Edition\n© 2024');
+        break;
+      case 'curl': case 'wget': case 'invoke-webrequest':
+        print('Fetching URL...','term-info');
+        setTimeout(()=>print('curl: (6) Could not resolve host (network simulation)','term-error'),500); break;
+      case 'python': case 'node': case 'npm': case 'git':
+        print(`'${verb}' is not recognized or not installed in this environment.`,'term-error'); break;
+      case 'format': print('WARNING: This will erase all data.','term-warn'); print('Format cancelled (simulation mode).','term-info'); break;
+      default:
+        if (raw.startsWith('echo ')) { print(cmd.substring(5)); break; }
+        print(`'${parts[0]}' is not recognized as an internal or external command,`,'term-error');
+        print(`operable program or batch file.`,'term-error');
+    }
+  }
+  window.addTermTab = (wid) => showNotif('Terminal','New tab opened','💻');
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: CALCULATOR — Standard + Scientific
+// ════════════════════════════════════════════════════════════
+function buildCalculator(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText = 'display:flex;flex-direction:column;';
+  let mode = 'standard';
+  let state = {expr:'', result:'0', prev:'', op:null, fresh:true, memory:0};
+
+  function render() {
+    wc.innerHTML = `
+      <div class="calc-header">
+        <div class="calc-mode" id="calc-mode-${id}">
+          <span onclick="calcSetMode(${id},'standard')" style="cursor:pointer;padding:3px 8px;border-radius:4px;${mode==='standard'?'background:rgba(255,255,255,0.1)':''}">Standard</span>
+          <span onclick="calcSetMode(${id},'scientific')" style="cursor:pointer;padding:3px 8px;border-radius:4px;${mode==='scientific'?'background:rgba(255,255,255,0.1)':''}">Scientific</span>
+          <span onclick="calcSetMode(${id},'programmer')" style="cursor:pointer;padding:3px 8px;border-radius:4px;${mode==='programmer'?'background:rgba(255,255,255,0.1)':''}">Programmer</span>
+        </div>
+        <div class="calc-expr" id="calc-expr-${id}">${state.expr}</div>
+        <div class="calc-result" id="calc-result-${id}">${state.result}</div>
+      </div>`;
+    const btnsEl = document.createElement('div');
+    btnsEl.className = `calc-btns ${mode==='scientific'?'sci':'std'}`;
+
+    let btns;
+    if (mode === 'standard') {
+      btns = [
+        ['MC','MR','M+','M-'],['%','CE','C','⌫'],
+        ['1/x','x²','√x','÷'],['7','8','9','×'],
+        ['4','5','6','−'],['1','2','3','+'],
+        ['+/−','0','.','='],
+      ];
+    } else if (mode === 'scientific') {
+      btns = [
+        ['MC','MR','M+','M-','MS'],
+        ['2ⁿᵈ','π','e','C','⌫'],
+        ['xʸ','x²','√x','³√x','ⁿ√x'],
+        ['sin','cos','tan','log','ln'],
+        ['(',')','^','!','%'],
+        ['7','8','9','÷','1/x'],
+        ['4','5','6','×','abs'],
+        ['1','2','3','−','floor'],
+        ['+/−','0','.','=','+'],
+      ];
+    } else {
+      btns = [
+        ['A','B','C','D','E','F'],
+        ['(',')',['<<','<<'],['>>','>>'],'%','⌫'],
+        ['CE','C','±','÷'],
+        ['7','8','9','×'],['4','5','6','−'],['1','2','3','+'],
+        ['0','.','='],
+      ];
+    }
+    btns.forEach(row => {
+      row.forEach(b => {
+        const label = Array.isArray(b) ? b[0] : b;
+        const btn = document.createElement('div');
+        btn.className = 'calc-btn';
+        if (['='].includes(label)) btn.classList.add('eq');
+        else if (['÷','×','−','+','xʸ','^'].includes(label)) btn.classList.add('op');
+        else if (['MC','MR','M+','M-','MS'].includes(label)) btn.classList.add('mem');
+        else if (['sin','cos','tan','log','ln','√x','x²','1/x','%','!','abs','floor','CE','C','⌫','π','e','2ⁿᵈ','³√x','ⁿ√x'].includes(label)) btn.classList.add('fn');
+        btn.textContent = label;
+        btn.onclick = () => calcInput(id, label);
+        btnsEl.appendChild(btn);
+      });
+    });
+    wc.appendChild(btnsEl);
+    updateCalcDisplay(id);
+  }
+
+  window.calcSetMode = (wid, m) => { mode=m; document.getElementById('wc-'+wid).querySelectorAll('.calc-btn').forEach(b=>{}); render(); if(m==='scientific'){document.getElementById('win-'+wid).style.width='380px';document.getElementById('win-'+wid).style.height='620px';} else {document.getElementById('win-'+wid).style.width='330px';document.getElementById('win-'+wid).style.height='540px';} };
+
+  window.calcInput = (wid, b) => {
+    const s = state;
+    if (b==='C'||b==='CE') { s.result='0'; s.expr=''; s.op=null; s.fresh=true; }
+    else if (b==='⌫') { s.result=s.result.length>1?s.result.slice(0,-1):'0'; }
+    else if (b==='+/−'||b==='±') { s.result=String(-parseFloat(s.result)); }
+    else if (b==='%') { s.result=String(parseFloat(s.result)/100); }
+    else if (b==='1/x') { s.result=String(1/parseFloat(s.result)); }
+    else if (b==='x²') { s.result=String(Math.pow(parseFloat(s.result),2)); }
+    else if (b==='√x') { s.result=String(Math.sqrt(parseFloat(s.result))); }
+    else if (b==='sin') { s.result=String(Math.sin(parseFloat(s.result)*Math.PI/180)); }
+    else if (b==='cos') { s.result=String(Math.cos(parseFloat(s.result)*Math.PI/180)); }
+    else if (b==='tan') { s.result=String(Math.tan(parseFloat(s.result)*Math.PI/180)); }
+    else if (b==='log') { s.result=String(Math.log10(parseFloat(s.result))); }
+    else if (b==='ln') { s.result=String(Math.log(parseFloat(s.result))); }
+    else if (b==='!') { const n=parseInt(s.result); s.result=String(n<=0?1:Array.from({length:n},(_,i)=>i+1).reduce((a,x)=>a*x,1)); }
+    else if (b==='abs') { s.result=String(Math.abs(parseFloat(s.result))); }
+    else if (b==='floor') { s.result=String(Math.floor(parseFloat(s.result))); }
+    else if (b==='π') { s.result=String(Math.PI); s.fresh=false; }
+    else if (b==='e') { s.result=String(Math.E); s.fresh=false; }
+    else if (b==='MS') { s.memory=parseFloat(s.result); showNotif('Calculator','Stored in memory','🧮'); }
+    else if (b==='MR') { s.result=String(s.memory); s.fresh=false; }
+    else if (b==='M+') { s.memory+=parseFloat(s.result); }
+    else if (b==='M-') { s.memory-=parseFloat(s.result); }
+    else if (b==='MC') { s.memory=0; }
+    else if (['+','−','×','÷','^','xʸ'].includes(b)) {
+      if (s.op && !s.fresh) { s.result=String(calcOp(parseFloat(s.prev),parseFloat(s.result),s.op)); }
+      s.prev=s.result; s.op=b; s.expr=`${s.result} ${b}`; s.fresh=true;
+    }
+    else if (b==='=') {
+      if (s.op) {
+        s.expr=`${s.prev} ${s.op} ${s.result} =`;
+        s.result=String(calcOp(parseFloat(s.prev),parseFloat(s.result),s.op));
+        s.op=null; s.fresh=true;
+      }
+    }
+    else if (b==='(' || b===')') { /* grouping placeholder */ }
+    else {
+      if (s.fresh) { s.result=b==='.'?'0.':b; s.fresh=false; }
+      else { s.result=s.result==='0'&&b!=='.'? b : (b==='.'&&s.result.includes('.')?s.result:s.result+b); }
+    }
+    updateCalcDisplay(wid);
+  };
+
+  function calcOp(a,b,op) {
+    switch(op){case'+':return a+b;case'−':return a-b;case'×':return a*b;case'÷':return b!==0?a/b:Infinity;case'^':case'xʸ':return Math.pow(a,b);}
+    return b;
+  }
+  function updateCalcDisplay(wid) {
+    const re=document.getElementById('calc-result-'+wid);
+    const ex=document.getElementById('calc-expr-'+wid);
+    if(!re||!ex) return;
+    let disp = state.result;
+    if (disp.length > 14) disp = parseFloat(disp).toExponential(6);
+    re.textContent = disp;
+    ex.textContent = state.expr;
+  }
+  render();
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: SETTINGS
+// ════════════════════════════════════════════════════════════
+function buildSettings(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText='display:flex;flex-direction:column;';
+  const SECTIONS = [
+    {icon:'🏠',label:'System',fn:settingsSystem},{icon:'📶',label:'Bluetooth & devices',fn:settingsBT},
+    {icon:'🌐',label:'Network & internet',fn:settingsNetwork},{icon:'🖌️',label:'Personalization',fn:settingsPersonalization},
+    {icon:'📱',label:'Apps',fn:settingsApps},{icon:'👤',label:'Accounts',fn:settingsAccounts},
+    {icon:'🕐',label:'Time & language',fn:settingsTime},{icon:'🎮',label:'Gaming',fn:settingsGaming},
+    {icon:'♿',label:'Accessibility',fn:settingsAccessibility},{icon:'🔒',label:'Privacy & security',fn:settingsPrivacy},
+    {icon:'⬆️',label:'Windows Update',fn:settingsUpdate},
+  ];
+  wc.innerHTML = `
+    <div class="settings-layout">
+      <div class="settings-sidebar">
+        <div style="padding:10px 14px 6px;font-size:15px;font-weight:600">Settings</div>
+        <div class="settings-search"><span>🔍</span><input placeholder="Find a setting" id="settings-search-${id}" oninput="settingsFilter(${id},this.value)"></div>
+        <div id="settings-nav-${id}"></div>
+      </div>
+      <div class="settings-content" id="settings-content-${id}"></div>
+    </div>`;
+  const nav = document.getElementById('settings-nav-'+id);
+  SECTIONS.forEach((s,i) => {
+    const el = document.createElement('div');
+    el.className = 'settings-nav'+(i===0?' active':'');
+    el.id = `snav-${id}-${i}`;
+    el.innerHTML = `<span>${s.icon}</span><span>${s.label}</span>`;
+    el.onclick = () => {
+      document.querySelectorAll(`#settings-nav-${id} .settings-nav`).forEach(n=>n.classList.remove('active'));
+      el.classList.add('active');
+      s.fn(id);
+    };
+    nav.appendChild(el);
+  });
+  window.settingsFilter = (wid, q) => {
+    const items = document.querySelectorAll(`#settings-nav-${wid} .settings-nav`);
+    items.forEach(item => item.style.display = item.textContent.toLowerCase().includes(q.toLowerCase())||!q?'':'none');
+  };
+  settingsSystem(id);
+}
+function settingsSystem(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>System</h2>
+    <div style="display:flex;align-items:center;gap:16px;padding:16px;background:rgba(0,120,212,0.12);border:1px solid rgba(0,120,212,0.3);border-radius:8px;margin-bottom:16px">
+      <div style="font-size:36px">🖥️</div>
+      <div><div style="font-size:15px;font-weight:600">WINPC</div><div style="font-size:13px;color:rgba(255,255,255,0.5)">Windows 11 Pro · Version 23H2</div></div>
+    </div>
+    <div class="settings-card">
+      ${sRow('🖥️','Display','1920×1080 @ 60Hz, 100% scale','›')}
+      ${sRow('🔊','Sound','Speakers — Realtek Audio','›')}
+      ${sRow('🔔','Notifications','Some app notifications silenced',toggle(true))}
+      ${sRow('🌙','Focus','Off',toggle(false))}
+      ${sRow('⚡','Power mode','Balanced','<select class="s-select"><option>Balanced</option><option>Power saver</option><option>Best performance</option></select>')}
+    </div>
+    <div class="settings-card">
+      ${sRow('💾','Storage','C: 127 GB / 500 GB used','›')}
+      ${sRow('📱','Nearby sharing','Off',toggle(false))}
+      ${sRow('📋','Clipboard','Clipboard history on',toggle(true))}
+    </div>
+    <div class="settings-card">
+      ${sRow('ℹ️','About','Intel i9 · 32 GB RAM · Windows 11 Pro','›')}
+    </div>`;
+}
+function settingsNetwork(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Network & internet</h2>
+    <div class="settings-card">
+      ${sRow('📶','Wi-Fi','HomeNetwork_5G — Connected',toggle(true))}
+      ${sRow('🔵','Ethernet','Not connected','›')}
+      ${sRow('📡','Mobile hotspot','Off',toggle(false))}
+      ${sRow('✈️','Airplane mode','Off',toggle(false))}
+      ${sRow('🌐','Proxy','None','›')}
+    </div>
+    <div class="settings-card">
+      ${sRow('🔒','VPN','Not connected','+ Add VPN')}
+      ${sRow('📊','Data usage','2.4 GB used this month','›')}
+    </div>`;
+}
+function settingsPersonalization(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Personalization</h2>
+    <div class="settings-card">
+      ${sRow('🌄','Background','Gradient · Windows spotlight',`<button class="tb-text-btn" onclick="changeWallpaper(${id})">Change</button>`)}
+      ${sRow('🎨','Accent color','Blue (default)',`<div style="width:22px;height:22px;border-radius:50%;background:#0078d4;cursor:pointer;box-shadow:0 0 0 2px rgba(255,255,255,0.3)" onclick="pickAccent(${id})"></div>`)}
+      ${sRow('🌓','Color mode','Dark',`<select class="s-select" onchange="changeTheme(this.value)"><option>Dark</option><option>Light</option><option>Custom</option></select>`)}
+      ${sRow('🔲','Transparency effects','On',toggle(true))}
+    </div>
+    <div class="settings-card">
+      ${sRow('📌','Taskbar','Centered, autohide off','›')}
+      ${sRow('🖥️','Lock screen','Spotlight','›')}
+      ${sRow('✒️','Fonts','Segoe UI, Calibri, Arial...','›')}
+    </div>`;
+  window.changeWallpaper = () => { showNotif('Personalization','Wallpaper changed! (simulation)','🌄'); };
+  window.pickAccent = () => { showNotif('Personalization','Accent color picker (simulation)','🎨'); };
+  window.changeTheme = (v) => { showNotif('Personalization',`Theme changed to ${v}`,'🌓'); };
+}
+function settingsApps(id) {
+  const apps=[['Microsoft Edge','🌐','0.8 MB'],['Notepad','📝','0.2 MB'],['Calculator','🔢','0.3 MB'],['Photos','🖼️','1.2 MB'],['Groove Music','🎵','0.9 MB'],['Maps','🗺️','2.1 MB'],['Paint','🎨','0.4 MB'],['Terminal','💻','0.6 MB']];
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Apps</h2>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <input class="fe-path-input" placeholder="Search apps..." style="max-width:280px">
+      <select class="s-select"><option>Sort by name</option><option>Sort by size</option><option>Sort by date</option></select>
+    </div>
+    <div class="settings-card">
+      ${apps.map(([name,icon,size])=>`<div class="s-row"><div class="s-row-icon">${icon}</div><div class="s-row-text"><div class="label">${name}</div><div class="sub">${size} · System app</div></div><button class="tb-text-btn">Uninstall</button></div>`).join('')}
+    </div>`;
+}
+function settingsAccounts(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Accounts</h2>
+    <div class="settings-card">
+      <div class="s-row" style="gap:16px;padding:18px">
+        <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#0078d4,#50e6ff);display:flex;align-items:center;justify-content:center;font-size:28px">👤</div>
+        <div><div style="font-size:16px;font-weight:500">Windows User</div><div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:3px">Local account · Administrator</div></div>
+      </div>
+    </div>
+    <div class="settings-card">
+      ${sRow('📧','Email & accounts','1 account connected','›')}
+      ${sRow('🔑','Sign-in options','PIN, Windows Hello','›')}
+      ${sRow('👨‍👩‍👧','Family & other users','No other users','›')}
+      ${sRow('💼','Work or school','Not connected','›')}
+    </div>`;
+}
+function settingsTime(id) {
+  const now = new Date();
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Time & language</h2>
+    <div class="settings-card">
+      ${sRow('🕐','Date & time',`${now.toLocaleDateString()} ${now.toLocaleTimeString()}`,toggle(true)+'<span style="font-size:12px;color:rgba(255,255,255,0.4);margin-left:8px">Auto</span>')}
+      ${sRow('🌐','Region','Denmark (da-DK)','›')}
+      ${sRow('⌨️','Language','English (United States)','›')}
+      ${sRow('🗣️','Speech','English','›')}
+    </div>`;
+}
+function settingsGaming(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Gaming</h2>
+    <div class="settings-card">
+      ${sRow('🎮','Xbox Game Bar','Overlay on Win+G',toggle(true))}
+      ${sRow('🎯','Game Mode','Optimized for gaming',toggle(true))}
+      ${sRow('📹','Captures','Record clips, screenshots','›')}
+      ${sRow('📊','Game performance','DirectStorage enabled',toggle(true))}
+    </div>`;
+}
+function settingsAccessibility(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Accessibility</h2>
+    <div class="settings-card">
+      ${sRow('🔍','Magnifier','Off',toggle(false))}
+      ${sRow('🎨','Color filters','Off',toggle(false))}
+      ${sRow('💬','Narrator','Off',toggle(false))}
+      ${sRow('🔊','Audio','Mono audio off',toggle(false))}
+      ${sRow('⌨️','Keyboard','Sticky keys off',toggle(false))}
+      ${sRow('🖱️','Mouse','Mouse keys off',toggle(false))}
+    </div>`;
+}
+function settingsPrivacy(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Privacy & security</h2>
+    <div class="settings-card">
+      ${sRow('🛡️','Windows Security','No threats detected · Protected','›')}
+      ${sRow('🔥','Firewall','Domain, Private, Public — On','›')}
+      ${sRow('🦠','Virus protection','Real-time protection on',toggle(true))}
+    </div>
+    <div class="settings-card">
+      ${sRow('📍','Location','Apps can use location',toggle(true))}
+      ${sRow('📷','Camera','Camera access on',toggle(true))}
+      ${sRow('🎤','Microphone','Microphone access on',toggle(true))}
+      ${sRow('🔔','Notifications','Notification access on',toggle(true))}
+    </div>`;
+}
+function settingsUpdate(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Windows Update</h2>
+    <div class="settings-card" style="padding:20px">
+      <div style="display:flex;align-items:center;gap:16px;padding:12px">
+        <div style="font-size:44px">✅</div>
+        <div><div style="font-size:16px;font-weight:600">You're up to date</div><div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px">Last checked: Today, 9:14 AM</div></div>
+      </div>
+    </div>
+    <div style="margin:16px 0;display:flex;gap:10px">
+      <button class="tb-text-btn primary" onclick="checkUpdates(${id})">Check for updates</button>
+      <button class="tb-text-btn">Pause updates (1 week)</button>
+    </div>
+    <div class="settings-card">
+      ${sRow('⏰','Active hours','8:00 AM – 5:00 PM','›')}
+      ${sRow('🔄','Delivery optimization','On',toggle(true))}
+      ${sRow('📜','Update history','View all updates','›')}
+    </div>`;
+  window.checkUpdates = () => { showNotif('Windows Update','Checking for updates...','⬆️'); setTimeout(()=>showNotif('Windows Update','Your device is up to date ✅','✅'),2000); };
+}
+function settingsBT(id) {
+  document.getElementById('settings-content-'+id).innerHTML = `
+    <h2>Bluetooth & devices</h2>
+    <div class="settings-card">
+      ${sRow('🔵','Bluetooth','On',toggle(true))}
+    </div>
+    <div style="font-size:14px;font-weight:600;margin:16px 0 8px">Paired devices</div>
+    <div class="settings-card">
+      ${sRow('🎧','WH-1000XM4','Connected — Audio','›')}
+      ${sRow('🖱️','MX Master 3','Connected — Mouse','›')}
+      ${sRow('⌨️','MX Keys','Not connected','›')}
+    </div>`;
+}
+function sRow(icon,label,sub,right='') { return `<div class="s-row"><div class="s-row-icon">${icon}</div><div class="s-row-text"><div class="label">${label}</div><div class="sub">${sub}</div></div>${right}</div>`; }
+function toggle(on) { return `<div class="toggle${on?' on':''}" onclick="this.classList.toggle('on')"></div>`; }
+
+// ════════════════════════════════════════════════════════════
+// APP: PHOTOS — Gallery + viewer + canvas editor
+// ════════════════════════════════════════════════════════════
+function buildPhotos(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText='display:flex;flex-direction:column;';
+  const photos = [];
+  // Generate procedural photos
+  function genPhoto(type, w=400, h=300) {
+    const canvas = document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    const ctx = canvas.getContext('2d');
+    if (type==='aurora') {
+      const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'#0a0a2a'); g.addColorStop(1,'#0a1a30');
+      ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+      for(let i=0;i<3;i++){const ag=ctx.createRadialGradient(w*(0.3+i*0.2),h*0.3,0,w*(0.3+i*0.2),h*0.3,120);ag.addColorStop(0,`rgba(${i*40},200,${100+i*50},0.2)`);ag.addColorStop(1,'transparent');ctx.fillStyle=ag;ctx.fillRect(0,0,w,h);}
+      ctx.fillStyle='#0d1b2a'; ctx.beginPath(); for(let x=0;x<=w;x+=w/10) ctx.lineTo(x,h*0.55+Math.sin(x/50)*30); ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.fill();
+      ctx.fillStyle='#fff'; for(let i=0;i<100;i++){ctx.beginPath();ctx.arc(Math.random()*w,Math.random()*h*0.5,Math.random()*1.5,0,Math.PI*2);ctx.globalAlpha=Math.random()*0.7+0.1;ctx.fill();}
+      ctx.globalAlpha=1;
+    } else if (type==='sunset') {
+      const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#0a0a1a');g.addColorStop(0.4,'#4a1060');g.addColorStop(0.6,'#f4511e');g.addColorStop(1,'#ffd700');
+      ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='rgba(255,200,0,0.8)';ctx.beginPath();ctx.arc(w/2,h*0.6,40,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#0a0a1a'; for(let x=0;x<=w;x+=w/8) {const mh=h*0.45+Math.random()*h*0.2; ctx.fillRect(x,mh,w/8+5,h-mh);}
+      ctx.fillStyle='rgba(255,120,0,0.3)'; ctx.fillRect(0,h*0.7,w,h*0.3);
+    } else if (type==='forest') {
+      ctx.fillStyle='#0a1a0a';ctx.fillRect(0,0,w,h);
+      const leaves=['#1a4a1a','#2a6a2a','#1a5a1a','#3a7a3a'];
+      for(let i=0;i<20;i++){ctx.fillStyle=leaves[Math.floor(Math.random()*leaves.length)];const tw=20+Math.random()*30;ctx.beginPath();ctx.moveTo(Math.random()*w,h*0.4+Math.random()*h*0.3);ctx.lineTo(Math.random()*w,Math.random()*h*0.4);ctx.lineWidth=tw;ctx.strokeStyle=leaves[Math.floor(Math.random()*leaves.length)];ctx.stroke();}
+      ctx.fillStyle='rgba(100,200,50,0.2)';const sg=ctx.createLinearGradient(0,h*0.3,0,h*0.6);sg.addColorStop(0,'rgba(100,255,50,0.3)');sg.addColorStop(1,'transparent');ctx.fillStyle=sg;ctx.fillRect(0,h*0.3,w,h*0.3);
+    } else if (type==='city') {
+      ctx.fillStyle='#050510';ctx.fillRect(0,0,w,h);
+      for(let x=0;x<w;x+=30+Math.random()*20){const bh=h*0.3+Math.random()*h*0.4;ctx.fillStyle=`hsl(220,20%,${10+Math.random()*15}%)`;ctx.fillRect(x,h-bh,25+Math.random()*15,bh);for(let wy=h-bh+5;wy<h;wy+=12){for(let wx=x+3;wx<x+25;wx+=8){if(Math.random()>0.4){ctx.fillStyle=`rgba(255,230,100,${0.4+Math.random()*0.6})`;ctx.fillRect(wx,wy,5,7);}}}}
+      const rg=ctx.createLinearGradient(0,h*0.5,0,h);rg.addColorStop(0,'rgba(0,100,200,0.15)');rg.addColorStop(1,'rgba(0,0,0,0.8)');ctx.fillStyle=rg;ctx.fillRect(0,h*0.5,w,h*0.5);
+      for(let i=0;i<60;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.4+0.05})`;ctx.beginPath();ctx.arc(Math.random()*w,Math.random()*h*0.4,Math.random()*1.2,0,Math.PI*2);ctx.fill();}
+    } else {
+      const g=ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,`hsl(${Math.random()*360},60%,40%)`);g.addColorStop(1,`hsl(${Math.random()*360},40%,10%)`);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    }
+    return canvas.toDataURL();
+  }
+  const photoTypes = ['aurora','sunset','forest','city','aurora','sunset','forest','city','city','aurora'];
+  const photoNames = ['Northern Lights','Sunset City','Forest Path','Night City','Aurora Borealis','Evening Sky','Green Valley','Skyline','Downtown','Polar Night'];
+  photoTypes.forEach((t,i) => photos.push({name:photoNames[i], src:genPhoto(t), type:t}));
+
+  let viewerOpen = false;
+  let currentPhoto = 0;
+  let zoom = 1, rotation = 0;
+
+  wc.innerHTML = `
+    <div class="toolbar">
+      <button class="tb-text-btn" id="pv-back-${id}" onclick="photosBack(${id})" style="display:none">← Back</button>
+      <button class="tb-text-btn" onclick="photosImport(${id})">📂 Import</button>
+      <button class="tb-text-btn" onclick="photosSlideshow(${id})">▶️ Slideshow</button>
+      <div style="flex:1"></div>
+      <button class="tb-text-btn" id="pv-edit-btn-${id}" onclick="photosEdit(${id})" style="display:none">🎨 Edit</button>
+      <button class="tb-text-btn" id="pv-share-btn-${id}" onclick="photosShare(${id})" style="display:none">↗️ Share</button>
+      <button class="tb-text-btn" id="pv-del-btn-${id}" onclick="photosDelete(${id})" style="display:none;color:#f66">🗑️</button>
+    </div>
+    <div id="photos-gallery-${id}" class="photos-grid"></div>
+    <div class="photo-viewer" id="photo-viewer-${id}">
+      <div class="photo-viewer-content" id="pvc-${id}">
+        <img id="photo-img-${id}" class="photo-viewer-img" style="max-width:100%;max-height:100%">
+      </div>
+      <div class="pv-controls">
+        <button class="tb-text-btn" onclick="photoNav(${id},-1)">‹ Prev</button>
+        <button class="tb-text-btn" onclick="photoZoom(${id},-0.25)">🔍−</button>
+        <span id="photo-zoom-${id}" style="font-size:12px;color:rgba(255,255,255,0.5);min-width:50px;text-align:center">100%</span>
+        <button class="tb-text-btn" onclick="photoZoom(${id},0.25)">🔍+</button>
+        <button class="tb-text-btn" onclick="photoRotate(${id})">↻ Rotate</button>
+        <button class="tb-text-btn" onclick="photoFit(${id})">⤢ Fit</button>
+        <button class="tb-text-btn" onclick="photoNav(${id},1)">Next ›</button>
+      </div>
+    </div>
+    <div class="statusbar" id="photos-status-${id}"><span>${photos.length} photos</span></div>`;
+
+  const gallery = document.getElementById('photos-gallery-'+id);
+  photos.forEach((p,i) => {
+    const el = document.createElement('div');
+    el.className = 'photo-thumb';
+    el.title = p.name;
+    const img = document.createElement('img');
+    img.src = p.src;
+    img.style.cssText='width:100%;height:100%;object-fit:cover;';
+    el.appendChild(img);
+    el.ondblclick = () => { currentPhoto=i; openPhotoViewer(id); };
+    gallery.appendChild(el);
+  });
+
+  function openPhotoViewer(wid) {
+    viewerOpen=true;
+    document.getElementById('photos-gallery-'+wid).style.display='none';
+    document.getElementById('photo-viewer-'+wid).classList.add('show');
+    document.getElementById('pv-back-'+wid).style.display='';
+    document.getElementById('pv-edit-btn-'+wid).style.display='';
+    document.getElementById('pv-share-btn-'+wid).style.display='';
+    document.getElementById('pv-del-btn-'+wid).style.display='';
+    zoom=1; rotation=0; updatePhotoView(wid);
+    document.getElementById('photos-status-'+wid).innerHTML=`<span>${photos[currentPhoto].name}</span><span>${currentPhoto+1} of ${photos.length}</span>`;
+  }
+  function updatePhotoView(wid) {
+    const img=document.getElementById('photo-img-'+wid);
+    if(!img) return;
+    img.src=photos[currentPhoto].src;
+    img.style.transform=`scale(${zoom}) rotate(${rotation}deg)`;
+    document.getElementById('photo-zoom-'+wid).textContent=Math.round(zoom*100)+'%';
+  }
+  window.photosBack = (wid) => {
+    viewerOpen=false;
+    document.getElementById('photos-gallery-'+wid).style.display='';
+    document.getElementById('photo-viewer-'+wid).classList.remove('show');
+    document.getElementById('pv-back-'+wid).style.display='none';
+    document.getElementById('pv-edit-btn-'+wid).style.display='none';
+    document.getElementById('pv-share-btn-'+wid).style.display='none';
+    document.getElementById('pv-del-btn-'+wid).style.display='none';
+    document.getElementById('photos-status-'+wid).innerHTML=`<span>${photos.length} photos</span>`;
+  };
+  window.photoNav = (wid, dir) => { currentPhoto=(currentPhoto+dir+photos.length)%photos.length; zoom=1;rotation=0; updatePhotoView(wid); document.getElementById('photos-status-'+wid).innerHTML=`<span>${photos[currentPhoto].name}</span><span>${currentPhoto+1} of ${photos.length}</span>`; };
+  window.photoZoom = (wid, d) => { zoom=Math.max(0.1,Math.min(5,zoom+d)); updatePhotoView(wid); };
+  window.photoRotate = (wid) => { rotation=(rotation+90)%360; updatePhotoView(wid); };
+  window.photoFit = (wid) => { zoom=1; rotation=0; updatePhotoView(wid); };
+  window.photosImport = (wid) => {
+    const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.multiple=true;
+    inp.onchange=e=>{
+      Array.from(e.target.files).forEach(f=>{
+        const r=new FileReader();
+        r.onload=ev=>{
+          photos.push({name:f.name,src:ev.target.result});
+          const el=document.createElement('div');el.className='photo-thumb';
+          const img=document.createElement('img');img.src=ev.target.result;img.style.cssText='width:100%;height:100%;object-fit:cover;';
+          el.appendChild(img);el.ondblclick=()=>{currentPhoto=photos.length-1;openPhotoViewer(wid);};
+          gallery.appendChild(el);
+          document.getElementById('photos-status-'+wid).innerHTML=`<span>${photos.length} photos</span>`;
+          showNotif('Photos',`Imported ${f.name}`,'🖼️');
+        };r.readAsDataURL(f);
+      });
+    };inp.click();
+  };
+  window.photosSlideshow = (wid) => { showNotif('Photos','Slideshow started','▶️'); let s=setInterval(()=>{if(!document.getElementById('win-'+wid)){clearInterval(s);return;} photoNav(wid,1); if(!viewerOpen)openPhotoViewer(wid); },3000); };
+  window.photosEdit = (wid) => showNotif('Photos','Photo editing coming soon','🎨');
+  window.photosShare = (wid) => showNotif('Photos','Sharing options','↗️');
+  window.photosDelete = (wid) => { if(viewerOpen){photos.splice(currentPhoto,1);if(photos.length===0){photosBack(wid);}else{currentPhoto=Math.min(currentPhoto,photos.length-1);updatePhotoView(wid);}} };
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: PAINT — Full drawing app
+// ════════════════════════════════════════════════════════════
+function buildPaint(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText='display:flex;flex-direction:column;';
+  let tool='brush', color='#000000', color2='#ffffff', size=4, opacity=1.0;
+  let drawing=false, lx=0, ly=0, startX=0, startY=0;
+  let undoStack=[], redoStack=[];
+  const COLORS = ['#000000','#ffffff','#808080','#c0c0c0','#800000','#ff0000','#ff8000','#ffd700','#808000','#00ff00','#008000','#00ffff','#008080','#0000ff','#000080','#ff00ff','#800080','#ff69b4','#a52a2a','#d2691e'];
+
+  wc.innerHTML = `
+    <div class="toolbar">
+      <button class="tb-text-btn" onclick="paintNew(${id})">📄 New</button>
+      <button class="tb-text-btn" onclick="paintOpen(${id})">📂 Open</button>
+      <button class="tb-text-btn" onclick="paintSave(${id})">💾 Save</button>
+      <div class="tb-sep"></div>
+      <button class="tb-icon-btn" onclick="paintUndo(${id})" title="Undo">↩</button>
+      <button class="tb-icon-btn" onclick="paintRedo(${id})" title="Redo">↪</button>
+      <div class="tb-sep"></div>
+      <span style="font-size:12px;color:rgba(255,255,255,0.4)">Size:</span>
+      <input type="range" min="1" max="40" value="4" id="paint-size-${id}" style="width:80px;accent-color:var(--accent)" oninput="size=parseInt(this.value);document.getElementById('paint-sz-disp-${id}').textContent=this.value+'px'">
+      <span id="paint-sz-disp-${id}" style="font-size:12px;color:rgba(255,255,255,0.5);width:30px">4px</span>
+      <div class="tb-sep"></div>
+      <span style="font-size:12px;color:rgba(255,255,255,0.4)">Opacity:</span>
+      <input type="range" min="1" max="100" value="100" id="paint-op-${id}" style="width:70px;accent-color:var(--accent)" oninput="opacity=parseInt(this.value)/100">
+      <div class="tb-sep"></div>
+      <span style="font-size:12px;color:rgba(255,255,255,0.4)">Canvas:</span>
+      <input type="number" value="800" id="paint-cw-${id}" style="width:55px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;color:#fff;padding:2px 6px;font-size:12px">
+      ×
+      <input type="number" value="600" id="paint-ch-${id}" style="width:55px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:3px;color:#fff;padding:2px 6px;font-size:12px">
+      <button class="tb-text-btn" onclick="paintResize(${id})">Apply</button>
+    </div>
+    <div class="paint-body">
+      <div class="paint-tools" id="paint-tools-${id}"></div>
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="paint-canvas-wrap" id="paint-wrap-${id}">
+          <canvas id="paint-c-${id}" style="cursor:crosshair;box-shadow:0 4px 20px rgba(0,0,0,0.5);"></canvas>
+        </div>
+        <div class="paint-colors">
+          <div style="display:flex;flex-direction:column;gap:2px;margin-right:4px">
+            <div id="pc-fg-${id}" style="width:22px;height:22px;border-radius:3px;background:#000;cursor:pointer;border:2px solid rgba(255,255,255,0.6)" title="Foreground color" onclick="document.getElementById('pc-picker-${id}').click()"></div>
+            <div id="pc-bg-${id}" style="width:22px;height:22px;border-radius:3px;background:#fff;cursor:pointer;border:2px solid rgba(255,255,255,0.3)" title="Background color" onclick="document.getElementById('pc-picker2-${id}').click()"></div>
+          </div>
+          <input type="color" id="pc-picker-${id}" value="#000000" style="display:none" oninput="color=this.value;document.getElementById('pc-fg-${id}').style.background=this.value">
+          <input type="color" id="pc-picker2-${id}" value="#ffffff" style="display:none" oninput="color2=this.value;document.getElementById('pc-bg-${id}').style.background=this.value">
+          <div style="width:1px;height:26px;background:rgba(255,255,255,0.1);margin:0 4px"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:3px;max-width:400px">
+            ${COLORS.map(c=>`<div class="paint-color-swatch" style="background:${c}" onclick="color='${c}';document.getElementById('pc-fg-${id}').style.background='${c}';document.getElementById('pc-picker-${id}').value='${c}';document.querySelectorAll('#paint-colors-${id} .paint-color-swatch').forEach(s=>s.classList.remove('active'));this.classList.add('active')" title="${c}"></div>`).join('')}
+          </div>
+          <div style="margin-left:auto;font-size:11px;color:rgba(255,255,255,0.3)" id="paint-pos-${id}">0, 0</div>
+        </div>
+      </div>
+    </div>`;
+
+  const TOOLS = [{id:'brush',icon:'🖌️',tip:'Brush'},{id:'pencil',icon:'✏️',tip:'Pencil'},{id:'eraser',icon:'🧹',tip:'Eraser'},{id:'fill',icon:'🪣',tip:'Fill'},{id:'picker',icon:'💉',tip:'Color picker'},{id:'rect',icon:'⬜',tip:'Rectangle'},{id:'ellipse',icon:'⭕',tip:'Ellipse'},{id:'line',icon:'╱',tip:'Line'},{id:'text',icon:'T',tip:'Text'},{id:'spray',icon:'💨',tip:'Spray'}];
+  const toolsEl = document.getElementById('paint-tools-'+id);
+  TOOLS.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'paint-tool-btn' + (t.id==='brush'?' active':'');
+    btn.textContent = t.icon; btn.title = t.tip; btn.id = `ptb-${id}-${t.id}`;
+    btn.onclick = () => {
+      tool = t.id;
+      document.querySelectorAll(`#paint-tools-${id} .paint-tool-btn`).forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+    };
+    toolsEl.appendChild(btn);
+  });
+
+  const canvas = document.getElementById('paint-c-'+id);
+  const ctx = canvas.getContext('2d');
+  canvas.width = 800; canvas.height = 600;
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,800,600);
+
+  function saveUndo() { undoStack.push(canvas.toDataURL()); if(undoStack.length>30) undoStack.shift(); redoStack=[]; }
+
+  canvas.addEventListener('mousemove', e => {
+    const r=canvas.getBoundingClientRect();
+    const x=(e.clientX-r.left)*(canvas.width/r.width),y=(e.clientY-r.top)*(canvas.height/r.height);
+    document.getElementById('paint-pos-'+id).textContent=`${Math.round(x)}, ${Math.round(y)}`;
+    if (!drawing) return;
+    ctx.globalAlpha = opacity;
+    if (tool==='brush'||tool==='pencil') {
+      ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(x,y);
+      ctx.strokeStyle=color;ctx.lineWidth=tool==='pencil'?Math.max(1,size/2):size;
+      ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();
+    } else if (tool==='eraser') {
+      ctx.clearRect(x-size,y-size,size*2,size*2);
+    } else if (tool==='spray') {
+      for(let i=0;i<20;i++){const sx=x+(Math.random()-0.5)*size*3,sy=y+(Math.random()-0.5)*size*3;ctx.fillStyle=color;ctx.beginPath();ctx.arc(sx,sy,0.8,0,Math.PI*2);ctx.fill();}
+    } else if (tool==='rect'||tool==='ellipse'||tool==='line') {
+      // Live preview
+      const snap=undoStack[undoStack.length-1];
+      if(snap){const img=new Image();img.onload=()=>{ctx.globalAlpha=1;ctx.drawImage(img,0,0);ctx.globalAlpha=opacity;ctx.strokeStyle=color;ctx.lineWidth=size;ctx.beginPath();if(tool==='rect'){ctx.strokeRect(startX,startY,x-startX,y-startY);}else if(tool==='ellipse'){ctx.ellipse(startX+(x-startX)/2,startY+(y-startY)/2,Math.abs(x-startX)/2,Math.abs(y-startY)/2,0,0,Math.PI*2);ctx.stroke();}else if(tool==='line'){ctx.moveTo(startX,startY);ctx.lineTo(x,y);ctx.stroke();}};img.src=snap;}
+    }
+    ctx.globalAlpha=1;
+    lx=x; ly=y;
+  });
+  canvas.addEventListener('mousedown', e => {
+    drawing=true;
+    const r=canvas.getBoundingClientRect();
+    lx=(e.clientX-r.left)*(canvas.width/r.width);
+    ly=(e.clientY-r.top)*(canvas.height/r.height);
+    startX=lx; startY=ly;
+    saveUndo();
+    if (tool==='fill') { floodFill(ctx,Math.round(lx),Math.round(ly),color); drawing=false; }
+    else if (tool==='picker') {
+      const px=ctx.getImageData(Math.round(lx),Math.round(ly),1,1).data;
+      color=`rgb(${px[0]},${px[1]},${px[2]})`; drawing=false;
+      document.getElementById('pc-fg-'+id).style.background=color;
+    }
+    else if (tool==='text') {
+      const text=prompt('Enter text:','Hello!'); if(!text) {drawing=false;return;}
+      ctx.fillStyle=color; ctx.font=`${size*4}px sans-serif`; ctx.fillText(text,lx,ly); drawing=false;
+    }
+  });
+  canvas.addEventListener('mouseup', () => drawing=false);
+  canvas.addEventListener('mouseleave', () => drawing=false);
+
+  window.paintUndo = (wid) => { if(undoStack.length>0){const s=undoStack.pop();redoStack.push(canvas.toDataURL());const img=new Image();img.onload=()=>ctx.drawImage(img,0,0);img.src=s;}};
+  window.paintRedo = (wid) => { if(redoStack.length>0){const s=redoStack.pop();saveUndo();const img=new Image();img.onload=()=>ctx.drawImage(img,0,0);img.src=s;}};
+  window.paintNew = (wid) => { if(confirm('Clear canvas?')){ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);undoStack=[];redoStack=[];} };
+  window.paintSave = (wid) => { const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='drawing.png';a.click();showNotif('Paint','Saved as drawing.png','💾'); };
+  window.paintOpen = (wid) => { const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r2=new FileReader();r2.onload=ev=>{const img=new Image();img.onload=()=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);};img.src=ev.target.result;};r2.readAsDataURL(f);};inp.click(); };
+  window.paintResize = (wid) => {
+    const nw=parseInt(document.getElementById('paint-cw-'+wid).value)||800;
+    const nh=parseInt(document.getElementById('paint-ch-'+wid).value)||600;
+    const data=canvas.toDataURL();
+    canvas.width=nw; canvas.height=nh;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,nw,nh);
+    const img=new Image();img.onload=()=>ctx.drawImage(img,0,0);img.src=data;
+    showNotif('Paint',`Canvas resized to ${nw}×${nh}`,'🎨');
+  };
+
+  function floodFill(ctx,x,y,fillColor) {
+    const cw=ctx.canvas.width,ch=ctx.canvas.height;
+    const idata=ctx.getImageData(0,0,cw,ch),data=idata.data;
+    const idx=(x+y*cw)*4;
+    const tr=[data[idx],data[idx+1],data[idx+2],data[idx+3]];
+    const tmp=document.createElement('canvas');tmp.width=1;tmp.height=1;const tc=tmp.getContext('2d');tc.fillStyle=fillColor;tc.fillRect(0,0,1,1);const fc=tc.getImageData(0,0,1,1).data;
+    if(tr[0]===fc[0]&&tr[1]===fc[1]&&tr[2]===fc[2]) return;
+    const stack=[[x,y]];
+    while(stack.length){
+      const [cx2,cy2]=stack.pop();
+      if(cx2<0||cy2<0||cx2>=cw||cy2>=ch) continue;
+      const ci=(cx2+cy2*cw)*4;
+      if(data[ci]!==tr[0]||data[ci+1]!==tr[1]||data[ci+2]!==tr[2]) continue;
+      data[ci]=fc[0];data[ci+1]=fc[1];data[ci+2]=fc[2];data[ci+3]=255;
+      stack.push([cx2+1,cy2],[cx2-1,cy2],[cx2,cy2+1],[cx2,cy2-1]);
+    }
+    ctx.putImageData(idata,0,0);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: MUSIC PLAYER — Visualizer + real audio
+// ════════════════════════════════════════════════════════════
+function buildMusic(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText='display:flex;flex-direction:column;';
+  const SONGS = [
+    {title:'Midnight City',artist:'M83',album:'Hurry Up, We\'re Dreaming',dur:243,color:'#0078d4'},
+    {title:'Strobe',artist:'deadmau5',album:'For Lack of a Better Name',dur:633,color:'#9b59b6'},
+    {title:'Breathe',artist:'Telepopmusik',album:'Genetic World',dur:265,color:'#27ae60'},
+    {title:'Experience',artist:'Ludovico Einaudi',album:'In a Time Lapse',dur:313,color:'#e67e22'},
+    {title:'Comptine d\'un autre été',artist:'Yann Tiersen',album:'Amélie OST',dur:162,color:'#e74c3c'},
+    {title:'Clair de Lune',artist:'Claude Debussy',album:'Suite bergamasque',dur:304,color:'#3498db'},
+    {title:'Nuvole Bianche',artist:'Ludovico Einaudi',album:'Una Mattina',dur:357,color:'#1abc9c'},
+    {title:'River Flows In You',artist:'Yiruma',album:'First Love',dur:227,color:'#f39c12'},
+  ];
+  let currentTrack=0, playing=false, elapsed=0, volume=0.75, shuffle=false, repeat=false;
+  let timerRef=null, visFrameRef=null;
+  // Audio context for visualizer
+  let audioCtx=null, analyser=null, sourceNode=null, gainNode=null;
+
+  wc.innerHTML = `
+    <div class="music-layout">
+      <div class="music-sidebar">
+        <div style="font-size:12px;color:rgba(255,255,255,0.35);padding:8px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Library</div>
+        ${['Songs','Albums','Artists','Playlists','Podcasts'].map((l,i)=>`<div class="music-nav${i===0?' active':''}" onclick="musicNav(${id},'${l}',this)">${['🎵','💿','🎤','📋','🎙️'][i]} ${l}</div>`).join('')}
+        <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,0.35);padding:8px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase">Playlists</div>
+        ${['Favorites','Chill Mix','Workout'].map(p=>`<div class="music-nav" onclick="showNotif('Music','Opening ${p}','🎵')">🎶 ${p}</div>`).join('')}
+        <div style="margin-top:auto;padding:10px">
+          <button class="tb-text-btn" style="width:100%;justify-content:center" onclick="musicImport(${id})">+ Add music</button>
+        </div>
+      </div>
+      <div class="music-main">
+        <div style="padding:12px 16px 8px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:18px;font-weight:600">Songs</div>
+          <div style="flex:1"></div>
+          <input style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:5px 12px;color:#fff;font-size:12px;font-family:var(--font);outline:none;width:160px" placeholder="🔍 Search music" oninput="musicSearch(${id},this.value)">
+          <select class="s-select" id="music-sort-${id}" onchange="musicSort(${id},this.value)"><option value="title">Sort: Title</option><option value="artist">Sort: Artist</option><option value="duration">Sort: Duration</option></select>
+        </div>
+        <div class="music-list" id="music-list-${id}"></div>
+        <div style="height:40px;padding:0 16px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(255,255,255,0.05)">
+          <canvas id="music-vis-${id}" width="300" height="35" style="flex:1;border-radius:4px"></canvas>
+        </div>
+        <div class="music-player" id="music-player-${id}">
+          <div class="music-now-playing">
+            <div class="music-art" id="music-art-${id}" style="background:${SONGS[0].color}">${SONGS[0].title.charAt(0)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="music-title-${id}">${SONGS[0].title}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,0.5)" id="music-artist-${id}">${SONGS[0].artist}</div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="tb-icon-btn" onclick="musicToggleShuffle(${id})" id="music-shuf-${id}" title="Shuffle">🔀</button>
+              <button class="tb-icon-btn" onclick="musicToggleRepeat(${id})" id="music-rep-${id}" title="Repeat">🔁</button>
+              <button class="tb-icon-btn" onclick="showNotif('Music','Added to favorites ❤️','❤️')">🤍</button>
+            </div>
+          </div>
+          <div class="music-controls">
+            <button class="music-ctrl-btn" onclick="musicPrev(${id})">⏮</button>
+            <button class="music-ctrl-btn play-btn" id="music-play-${id}" onclick="musicPlayPause(${id})">▶</button>
+            <button class="music-ctrl-btn" onclick="musicNext(${id})">⏭</button>
+          </div>
+          <div class="music-progress">
+            <span id="music-elapsed-${id}">0:00</span>
+            <div class="music-prog-bar" id="music-pb-${id}" onclick="musicSeek(${id},event)">
+              <div class="music-prog-fill" id="music-pf-${id}" style="width:0%"></div>
+            </div>
+            <span id="music-total-${id}">${fmtTime(SONGS[0].dur)}</span>
+          </div>
+          <div class="music-vol">
+            <span style="font-size:14px">🔊</span>
+            <input type="range" min="0" max="100" value="75" style="flex:1;accent-color:var(--accent)" id="music-vol-${id}" oninput="musicVol(${id},this.value)">
+            <span style="font-size:11px;color:rgba(255,255,255,0.4)" id="music-vol-disp-${id}">75%</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  function fmtTime(s) { return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; }
+  function renderList(songs) {
+    const listEl=document.getElementById('music-list-'+id);
+    if(!listEl) return;
+    listEl.innerHTML='';
+    songs.forEach((s,i) => {
+      const realIdx=SONGS.indexOf(s);
+      const el=document.createElement('div');
+      el.className='music-track'+(realIdx===currentTrack?' playing':'');
+      el.id=`mtrack-${id}-${realIdx}`;
+      el.innerHTML=`
+        <div class="num">${realIdx===currentTrack&&playing?'▶':''}${realIdx!==currentTrack?realIdx+1:''}</div>
+        <div style="width:32px;height:32px;border-radius:4px;background:${s.color};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0">${s.title.charAt(0)}</div>
+        <div class="info"><div class="t">${s.title}</div><div class="a">${s.artist} · ${s.album}</div></div>
+        <div class="dur">${fmtTime(s.dur)}</div>
+        <button class="tb-icon-btn" style="opacity:0" class="track-more" onclick="showNotif('Music','Options for ${s.title}','⋯')">⋯</button>`;
+      el.addEventListener('mouseenter', () => el.querySelector('.tb-icon-btn').style.opacity='1');
+      el.addEventListener('mouseleave', () => el.querySelector('.tb-icon-btn').style.opacity='0');
+      el.ondblclick = () => { currentTrack=realIdx; elapsed=0; playing=true; updateMusicUI(id); startPlayback(id); };
+      listEl.appendChild(el);
+    });
+  }
+
+  function updateMusicUI(wid) {
+    const s=SONGS[currentTrack];
+    const titleEl=document.getElementById('music-title-'+wid);
+    const artistEl=document.getElementById('music-artist-'+wid);
+    const artEl=document.getElementById('music-art-'+wid);
+    const playBtn=document.getElementById('music-play-'+wid);
+    if(titleEl) titleEl.textContent=s.title;
+    if(artistEl) artistEl.textContent=s.artist;
+    if(artEl){artEl.style.background=s.color;artEl.textContent=s.title.charAt(0);}
+    if(playBtn) playBtn.textContent=playing?'⏸':'▶';
+    document.getElementById('music-total-'+wid).textContent=fmtTime(s.dur);
+    document.getElementById('wtitle-'+wid).textContent=`${s.title} — Groove Music`;
+    document.querySelectorAll(`[id^="mtrack-${wid}-"]`).forEach(el=>{
+      const i=parseInt(el.id.split('-').pop());
+      el.classList.toggle('playing',i===currentTrack);
+      el.querySelector('.num').textContent=i===currentTrack&&playing?'▶':String(i+1);
+    });
+  }
+
+  function startPlayback(wid) {
+    if(timerRef) clearInterval(timerRef);
+    timerRef=setInterval(()=>{
+      if(!document.getElementById('win-'+wid)){clearInterval(timerRef);return;}
+      if(playing){
+        elapsed++;
+        const pct=elapsed/SONGS[currentTrack].dur*100;
+        const pf=document.getElementById('music-pf-'+wid);
+        const el_=document.getElementById('music-elapsed-'+wid);
+        if(pf) pf.style.width=Math.min(pct,100)+'%';
+        if(el_) el_.textContent=fmtTime(elapsed);
+        if(elapsed>=SONGS[currentTrack].dur){elapsed=0;if(repeat){startPlayback(wid);}else musicNext(wid);}
+      }
+    },1000);
+    startVisualizer(wid);
+  }
+
+  function startVisualizer(wid) {
+    const canvas2=document.getElementById('music-vis-'+wid);
+    if(!canvas2) return;
+    const ctx2=canvas2.getContext('2d');
+    const bars=60;
+    function frame(){
+      if(!document.getElementById('win-'+wid)){return;}
+      visFrameRef=requestAnimationFrame(frame);
+      ctx2.clearRect(0,0,canvas2.width,canvas2.height);
+      if(!playing){ctx2.fillStyle='rgba(255,255,255,0.05)';for(let i=0;i<bars;i++){ctx2.fillRect(i*(canvas2.width/bars),canvas2.height-4,canvas2.width/bars-1,4);}return;}
+      const t=Date.now()/200;
+      for(let i=0;i<bars;i++){
+        const h=Math.abs(Math.sin(t+i*0.4)*Math.sin(t*0.5+i*0.2))*canvas2.height*0.9;
+        const g=ctx2.createLinearGradient(0,canvas2.height,0,canvas2.height-h);
+        g.addColorStop(0,SONGS[currentTrack].color);g.addColorStop(1,'rgba(255,255,255,0.8)');
+        ctx2.fillStyle=g;
+        ctx2.fillRect(i*(canvas2.width/bars),canvas2.height-h,canvas2.width/bars-1,h);
+      }
+    }
+    if(visFrameRef) cancelAnimationFrame(visFrameRef);
+    frame();
+  }
+
+  window.musicPlayPause = (wid) => { playing=!playing; updateMusicUI(wid); if(playing)startPlayback(wid);else if(timerRef){clearInterval(timerRef);} };
+  window.musicNext = (wid) => { currentTrack=shuffle?Math.floor(Math.random()*SONGS.length):(currentTrack+1)%SONGS.length; elapsed=0; if(playing)startPlayback(wid); updateMusicUI(wid); };
+  window.musicPrev = (wid) => { if(elapsed>3){elapsed=0;updateMusicUI(wid);return;} currentTrack=(currentTrack-1+SONGS.length)%SONGS.length; elapsed=0; if(playing)startPlayback(wid); updateMusicUI(wid); };
+  window.musicVol = (wid, v) => { volume=v/100; document.getElementById('music-vol-disp-'+wid).textContent=v+'%'; };
+  window.musicSeek = (wid, e) => { const bar=document.getElementById('music-pb-'+wid);if(!bar)return; const pct=e.offsetX/bar.offsetWidth; elapsed=Math.floor(pct*SONGS[currentTrack].dur); };
+  window.musicToggleShuffle = (wid) => { shuffle=!shuffle; document.getElementById('music-shuf-'+wid).style.color=shuffle?'var(--accent-light)':''; showNotif('Music',shuffle?'Shuffle on':'Shuffle off','🔀'); };
+  window.musicToggleRepeat = (wid) => { repeat=!repeat; document.getElementById('music-rep-'+wid).style.color=repeat?'var(--accent-light)':''; showNotif('Music',repeat?'Repeat on':'Repeat off','🔁'); };
+  window.musicNav = (wid, label, el) => { document.querySelectorAll(`#win-${wid} .music-nav`).forEach(n=>n.classList.remove('active'));el.classList.add('active');showNotif('Music',`Switched to ${label}`,'🎵'); };
+  window.musicImport = (wid) => {
+    const inp=document.createElement('input');inp.type='file';inp.accept='audio/*';inp.multiple=true;
+    inp.onchange=e=>{Array.from(e.target.files).forEach(f=>{const dur=Math.floor(Math.random()*300+60);SONGS.push({title:f.name.replace(/\.[^.]+$/,''),artist:'Unknown Artist',album:'Imported',dur,color:`hsl(${Math.random()*360},60%,40%)`});renderList(SONGS);showNotif('Music',`Imported: ${f.name}`,'🎵');});};
+    inp.click();
+  };
+  window.musicSearch = (wid, q) => { renderList(q?SONGS.filter(s=>s.title.toLowerCase().includes(q)||s.artist.toLowerCase().includes(q)):SONGS); };
+  window.musicSort = (wid, by) => { const sorted=[...SONGS].sort((a,b)=>by==='duration'?a.dur-b.dur:a[by].localeCompare(b[by])); renderList(sorted); };
+
+  renderList(SONGS);
+  startVisualizer(id);
+}
+
+// ════════════════════════════════════════════════════════════
+// APP: MAPS
+// ════════════════════════════════════════════════════════════
+function buildMaps(id) {
+  const wc = document.getElementById('wc-'+id);
+  wc.style.cssText='display:flex;flex-direction:column;';
+  let mapZoom=1.0, panX=0, panY=0, mapLayer='map', isDragging=false, lastMX=0, lastMY=0;
+  const PLACES = [
+    {name:'Copenhagen',icon:'📍',lat:55.676,lng:12.568,desc:'Capital of Denmark'},
+    {name:'Eiffel Tower',icon:'🗼',lat:48.858,lng:2.294,desc:'Paris, France'},
+    {name:'Big Ben',icon:'🕰️',lat:51.501,lng:-0.124,desc:'London, UK'},
+    {name:'Colosseum',icon:'🏛️',lat:41.890,lng:12.492,desc:'Rome, Italy'},
+    {name:'Sagrada Família',icon:'⛪',lat:41.404,lng:2.174,desc:'Barcelona, Spain'},
+    {name:'Brandenburg Gate',icon:'🏛️',lat:52.516,lng:13.377,desc:'Berlin, Germany'},
+  ];
+
+  wc.innerHTML = `
+    <div class="maps-layout">
+      <div class="maps-sidebar">
+        <div class="maps-search-bar">
+          <input class="maps-search-input" id="maps-search-${id}" placeholder="🔍 Search places..." oninput="mapsSearch(${id},this.value)" onkeydown="if(event.key==='Enter')mapsGo(${id})">
+        </div>
+        <div style="padding:8px 14px;font-size:12px;color:rgba(255,255,255,0.35);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Suggestions</div>
+        <div id="maps-results-${id}">
+          ${PLACES.map((p,i)=>`<div class="maps-result" onclick="mapsGoToPlace(${id},${i})"><span style="font-size:20px">${p.icon}</span><div><div style="font-size:13px;font-weight:500">${p.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${p.desc}</div></div></div>`).join('')}
+        </div>
+        <div style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.06);padding:12px">
+          <button class="tb-text-btn" style="width:100%;justify-content:center" onclick="mapsDirections(${id})">🚗 Directions</button>
+        </div>
+      </div>
+      <div class="maps-canvas-wrap">
+        <canvas id="maps-canvas-${id}" style="width:100%;height:100%;cursor:grab"></canvas>
+        <div class="maps-layer-btns">
+          <div class="maps-layer-btn active" onclick="mapsSetLayer(${id},'map',this)">🗺 Map</div>
+          <div class="maps-layer-btn" onclick="mapsSetLayer(${id},'satellite',this)">🛰 Satellite</div>
+          <div class="maps-layer-btn" onclick="mapsSetLayer(${id},'terrain',this)">⛰ Terrain</div>
+        </div>
+        <div class="maps-controls">
+          <div class="maps-ctrl-btn" onclick="mapsZoom(${id},0.3)">+</div>
+          <div class="maps-ctrl-btn" onclick="mapsZoom(${id},-0.3)">−</div>
+          <div class="maps-ctrl-btn" onclick="mapsCenter(${id})" title="My location">📍</div>
+          <div class="maps-ctrl-btn" onclick="mapsFullscreen(${id})" title="Fullscreen">⤢</div>
+        </div>
+        <div class="maps-info-panel" id="maps-info-${id}">
+          <div style="font-weight:600;margin-bottom:3px" id="maps-info-title-${id}">📍 Copenhagen</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5)" id="maps-info-sub-${id}">55.6761° N, 12.5683° E</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.35);margin-top:4px" id="maps-info-extra-${id}">Capital of Denmark · Population: 794,128</div>
+        </div>
+        <div style="position:absolute;bottom:12px;right:12px;background:rgba(22,22,22,0.8);border-radius:6px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,0.4)">
+          Zoom: <span id="maps-zoom-${id}">1.0x</span>
+        </div>
+      </div>
+    </div>`;
+
+  setTimeout(() => {
+    const canvas2=document.getElementById('maps-canvas-'+id);
+    if(!canvas2) return;
+    const cont=canvas2.parentElement;
+    canvas2.width=cont.offsetWidth; canvas2.height=cont.offsetHeight;
+    drawMap2(canvas2, mapZoom, panX, panY, mapLayer);
+
+    canvas2.addEventListener('wheel', e => {
+      e.preventDefault();
+      mapsZoom(id, e.deltaY<0?0.15:-0.15);
+    });
+    canvas2.addEventListener('mousedown', e => { isDragging=true; lastMX=e.clientX; lastMY=e.clientY; canvas2.style.cursor='grabbing'; });
+    canvas2.addEventListener('mousemove', e => {
+      if(!isDragging) return;
+      panX+=(e.clientX-lastMX)/mapZoom; panY+=(e.clientY-lastMY)/mapZoom;
+      lastMX=e.clientX; lastMY=e.clientY;
+      drawMap2(canvas2,mapZoom,panX,panY,mapLayer);
+    });
+    canvas2.addEventListener('mouseup', () => { isDragging=false; canvas2.style.cursor='grab'; });
+    canvas2.addEventListener('mouseleave', () => { isDragging=false; canvas2.style.cursor='grab'; });
+    canvas2.addEventListener('dblclick', e => {
+      const r=canvas2.getBoundingClientRect();
+      panX+=(canvas2.width/2-(e.clientX-r.left))*(0.3/mapZoom);
+      panY+=(canvas2.height/2-(e.clientY-r.top))*(0.3/mapZoom);
+      mapsZoom(id,0.5);
+    });
+  }, 60);
+
+  window.mapsZoom = (wid, d) => {
+    mapZoom=Math.max(0.3,Math.min(8,mapZoom+d));
+    document.getElementById('maps-zoom-'+wid).textContent=mapZoom.toFixed(1)+'x';
+    const c=document.getElementById('maps-canvas-'+wid);
+    if(c) drawMap2(c,mapZoom,panX,panY,mapLayer);
+  };
+  window.mapsCenter = (wid) => { panX=0;panY=0;mapZoom=1; const c=document.getElementById('maps-canvas-'+wid);if(c) drawMap2(c,mapZoom,panX,panY,mapLayer);showNotif('Maps','Centered on Copenhagen','📍'); };
+  window.mapsSetLayer = (wid, layer, el) => { mapLayer=layer;document.querySelectorAll('.maps-layer-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');const c=document.getElementById('maps-canvas-'+wid);if(c)drawMap2(c,mapZoom,panX,panY,layer); };
+  window.mapsGoToPlace = (wid, i) => {
+    const p=PLACES[i];
+    panX=(panX+Math.random()*40-20); panY=(panY+Math.random()*40-20);
+    mapZoom=Math.min(mapZoom+0.5,4);
+    const c=document.getElementById('maps-canvas-'+wid);if(c)drawMap2(c,mapZoom,panX,panY,mapLayer);
+    document.getElementById('maps-info-title-'+wid).textContent=`${p.icon} ${p.name}`;
+    document.getElementById('maps-info-sub-'+wid).textContent=`${p.lat}° N, ${p.lng}° E`;
+    document.getElementById('maps-info-extra-'+wid).textContent=p.desc;
+    document.getElementById('maps-zoom-'+wid).textContent=mapZoom.toFixed(1)+'x';
+    showNotif('Maps',`Navigating to ${p.name}`,'🗺️');
+  };
+  window.mapsSearch = (wid, q) => {
+    const res=document.getElementById('maps-results-'+wid);
+    if(!q){res.innerHTML=PLACES.map((p,i)=>`<div class="maps-result" onclick="mapsGoToPlace(${wid},${i})"><span style="font-size:20px">${p.icon}</span><div><div style="font-size:13px;font-weight:500">${p.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${p.desc}</div></div></div>`).join('');return;}
+    const filtered=PLACES.map((p,i)=>({...p,i})).filter(p=>p.name.toLowerCase().includes(q.toLowerCase()));
+    res.innerHTML=filtered.length?filtered.map(p=>`<div class="maps-result" onclick="mapsGoToPlace(${wid},${p.i})"><span style="font-size:20px">${p.icon}</span><div><div style="font-size:13px">${p.name}</div><div style="font-size:11px;color:rgba(255,255,255,0.4)">${p.desc}</div></div></div>`).join(''):`<div style="padding:14px;font-size:13px;color:rgba(255,255,255,0.35)">No results for "${q}"</div>`;
+  };
+  window.mapsGo = (wid) => { const q=document.getElementById('maps-search-'+wid).value; mapsSearch(wid,q); };
+  window.mapsDirections = (wid) => showNotif('Maps','Directions feature — enter start and end points','🚗');
+  window.mapsFullscreen = (wid) => maximizeWin(wid);
+}
+
+function drawMap2(canvas, zoom, panX, panY, layer) {
+  const ctx = canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.save();
+  ctx.translate(W/2+panX*zoom, H/2+panY*zoom);
+  ctx.scale(zoom, zoom);
+  const hw=W/zoom/2, hh=H/zoom/2;
+
+  if (layer==='satellite') {
+    // Dark satellite style
+    ctx.fillStyle='#0a1520'; ctx.fillRect(-hw,-hh,W/zoom,H/zoom);
+    // Fields
+    [[-80,-60,140,100,'#0a2010'],[-50,80,100,60,'#0d2515'],[100,-80,120,90,'#0a1f0a'],[60,80,100,70,'#122008'],[-150,-30,80,50,'#1a3010']].forEach(([x,y,w,h,c])=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);});
+  } else if (layer==='terrain') {
+    ctx.fillStyle='#c8d8a8'; ctx.fillRect(-hw,-hh,W/zoom,H/zoom);
+    [[-80,-60,140,100,'#a8c888'],[-50,80,100,60,'#98b870'],[100,-80,120,90,'#88a860'],[60,80,100,70,'#78985a']].forEach(([x,y,w,h,c])=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);});
+    ctx.fillStyle='#7ab8d0';ctx.beginPath();ctx.ellipse(-20,20,60,30,0.3,0,Math.PI*2);ctx.fill();
+  } else {
+    // Standard map
+    ctx.fillStyle='#1a3a5c'; ctx.fillRect(-hw,-hh,W/zoom,H/zoom);
+    // Land blocks
+    [[-200,-150,500,200,'#1e2d3d'],[-100,80,300,120,'#1e2d3d'],[-180,20,120,60,'#1e2d3d'],[150,-80,200,100,'#1e2d3d'],[80,30,100,80,'#1e2d3d']].forEach(([x,y,w,h,c])=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);});
+  }
+
+  // Roads
+  const roadColor = layer==='satellite'?'#253545':layer==='terrain'?'#c89a60':'#2a3f52';
+  ctx.strokeStyle=roadColor; ctx.lineWidth=6;
+  [[-hw,0,hw,0],[0,-hh,0,hh],[-hw,-60,hw,-60],[-150,-hh,-150,hh],[80,-hh,80,hh]].forEach(([x1,y1,x2,y2])=>{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();});
+
+  // Minor roads
+  ctx.lineWidth=2; ctx.strokeStyle=layer==='terrain'?'#b8905a':layer==='satellite'?'#1e2e3e':'#233344';
+  for(let x=-hw;x<hw;x+=40){ctx.beginPath();ctx.moveTo(x,-hh);ctx.lineTo(x,hh);ctx.stroke();}
+  for(let y=-hh;y<hh;y+=40){ctx.beginPath();ctx.moveTo(-hw,y);ctx.lineTo(hw,y);ctx.stroke();}
+
+  // Buildings
+  [[-40,-30,20,30,layer==='satellite'?'#1e3545':'#2a3d50'],[-70,10,25,20,layer==='satellite'?'#1e3545':'#2a3d50'],[20,-50,35,45,layer==='satellite'?'#1e3545':'#2a3d50'],[60,20,22,28,layer==='satellite'?'#1e3545':'#2a3d50'],[-30,50,40,30,layer==='satellite'?'#1e3545':'#2a3d50'],[90,-30,28,36,layer==='satellite'?'#1e3545':'#2a3d50']].forEach(([x,y,w,h,c])=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);ctx.fillStyle=layer==='satellite'?'rgba(255,230,100,0.25)':'rgba(255,220,100,0.12)';ctx.fillRect(x+2,y+2,w-4,h-4);});
+
+  // Park
+  ctx.fillStyle=layer==='satellite'?'#1a4020':layer==='terrain'?'#90c870':'#1a3520';
+  ctx.fillRect(-120,40,60,40);
+  ctx.fillStyle=layer==='satellite'?'rgba(60,220,80,0.3)':'rgba(60,180,70,0.25)';
+  for(let i=0;i<8;i++){ctx.beginPath();ctx.arc(-120+Math.random()*60,40+Math.random()*40,4+Math.random()*6,0,Math.PI*2);ctx.fill();}
+
+  // Location pin
+  ctx.fillStyle='rgba(0,120,212,0.2)';ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#0078d4';ctx.beginPath();ctx.arc(0,0,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.fill();
+
+  ctx.restore();
+
+  // Scale bar
+  ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(W-100,H-28,90,20);
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(W-94,H-22,70,3);
+  ctx.fillStyle='#fff';ctx.font='10px sans-serif';ctx.fillText(`${Math.round(500/zoom)}m`,W-92,H-26);
+}
+
+// ════════════════════════════════════════════════════════════
+// SHUTDOWN
+// ════════════════════════════════════════════════════════════
+function triggerShutdown() {
+  const o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;backdrop-filter:blur(20px)';
+  o.innerHTML=`<div class="win-logo"><div></div><div></div><div></div><div></div></div><div style="font-size:20px;font-weight:300;margin-top:10px">Shutting down</div><div class="boot-spinner"></div><div style="font-size:13px;color:rgba(255,255,255,0.3);margin-top:20px">Click to cancel</div>`;
+  document.body.appendChild(o);
+  o.onclick=()=>o.remove();
+  setTimeout(()=>{if(o.parentElement)o.remove();},5000);
+}
+</script>
+</body>
+</html>
